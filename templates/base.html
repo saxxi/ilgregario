@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="it" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IlGregario{% endblock %}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <nav class="container">
+    <ul><li><strong>IlGregario</strong></li></ul>
+    <ul>
+      {% if session is defined and session %}
+        <li><a href="/dashboard">Classifica</a></li>
+        {% if session.is_admin %}<li><a href="/admin">Admin</a></li>{% endif %}
+        <li><a href="/logout">Esci</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
