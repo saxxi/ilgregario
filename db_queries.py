@@ -3,10 +3,29 @@ Database query helpers for the fantasy leaderboard.
 Every function returns the same dict shape that templates expect.
 """
 
+import os
+import re
+import unicodedata
 from datetime import date, datetime, timezone
 from markupsafe import Markup, escape
 from database import get_db
 from scoring import gc_points
+
+
+def _slugify(name: str) -> str:
+    nfkd = unicodedata.normalize('NFKD', name)
+    ascii_str = nfkd.encode('ascii', 'ignore').decode('ascii')
+    slug = re.sub(r'[^a-z0-9]+', '-', ascii_str.lower())
+    return slug.strip('-')
+
+_ATHLETE_PHOTO_DIR = os.path.join(os.path.dirname(__file__), "static", "images", "athletes")
+
+
+def _athlete_photo_url(pcs_slug: str) -> str | None:
+    if not pcs_slug:
+        return None
+    path = os.path.join(_ATHLETE_PHOTO_DIR, f"{pcs_slug}.png")
+    return f"/static/images/athletes/{pcs_slug}.png" if os.path.isfile(path) else None
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +73,7 @@ def _load_user_athletes(season_id: str) -> list[dict]:
     return (
         get_db()
         .table("user_athletes")
-        .select("id,user_id,athlete_id,acquisition_price,users(id,username),athletes(id,full_name,team,nationality,pcs_slug,status)")
+        .select("id,user_id,athlete_id,acquisition_price,users(id,username),athletes(id,full_name,team,nationality,pcs_slug,slug,status)")
         .eq("season_id", season_id)
         .execute()
         .data
@@ -101,13 +120,16 @@ def _build_internal(races, ua_rows, result_rows):
             user_roster[username] = []
         user_roster[username].append(aid)
         if aid not in athletes:
+            pcs_slug = ath.get("pcs_slug") or ""
             athletes[aid] = {
                 "id": aid,
                 "full_name": ath["full_name"],
                 "team": ath.get("team") or "",
                 "flag": _flag(ath.get("nationality")),
-                "pcs_slug": ath.get("pcs_slug") or "",
+                "pcs_slug": pcs_slug,
+                "slug": ath.get("slug") or _slugify(ath["full_name"]),
                 "status": ath.get("status", "active"),
+                "photo_url": _athlete_photo_url(pcs_slug),
             }
 
     race_pts: dict[str, dict[str, dict]] = {}
@@ -391,23 +413,26 @@ def get_top_athletes() -> list[dict]:
         rows = (
             get_db()
             .table("athletes")
-            .select("id,full_name,team,nationality,pcs_slug")
+            .select("id,full_name,team,nationality,pcs_slug,slug")
             .in_("id", missing)
             .execute()
             .data
         )
         for r in rows:
+            pcs_slug = r.get("pcs_slug") or ""
             athletes[r["id"]] = {
                 "id": r["id"],
                 "full_name": r["full_name"],
                 "team": r.get("team") or "",
                 "flag": _flag(r.get("nationality")),
-                "pcs_slug": r.get("pcs_slug") or "",
+                "pcs_slug": pcs_slug,
+                "slug": r.get("slug") or _slugify(r["full_name"]),
+                "photo_url": _athlete_photo_url(pcs_slug),
             }
 
     result = []
     for rank, aid in enumerate(ranked, 1):
-        ath = athletes.get(aid, {"id": aid, "full_name": "—", "team": "", "flag": "", "pcs_slug": ""})
+        ath = athletes.get(aid, {"id": aid, "full_name": "—", "team": "", "flag": "", "pcs_slug": "", "slug": aid})
         br = best.get(aid, (None, None))
         pos_emoji = {1: "🥇", 2: "🥈", 3: "🥉"}.get(br[0], f"{br[0]}°" if br[0] else "—")
         result.append({
@@ -417,6 +442,8 @@ def get_top_athletes() -> list[dict]:
             "team": ath["team"],
             "flag": ath["flag"],
             "pcs_slug": ath.get("pcs_slug", ""),
+            "slug": ath.get("slug") or _slugify(ath["full_name"]),
+            "photo_url": ath.get("photo_url") or _athlete_photo_url(ath.get("pcs_slug", "")),
             "total_points": scores[aid],
             "best": f"{pos_emoji} {br[1]}" if br[1] else "—",
             "owner": athlete_owner.get(aid, "—"),
@@ -588,6 +615,8 @@ def get_user_detail(username: str) -> dict | None:
             "team": ath["team"],
             "flag": ath["flag"],
             "pcs_slug": ath.get("pcs_slug", ""),
+            "slug": ath.get("slug") or _slugify(ath["full_name"]),
+            "photo_url": ath.get("photo_url") or _athlete_photo_url(ath.get("pcs_slug", "")),
             "status": ath.get("status", "active"),
             "acquisition_price": acq_by_aid.get(aid),
             "best": best_str,
@@ -604,13 +633,16 @@ def get_user_detail(username: str) -> dict | None:
         for aid in athlete_ids:
             res = race_pts.get(race["id"], {}).get(aid)
             if res:
+                ath_data = athletes.get(aid, {})
                 res_list.append({
-                    "athlete": athletes.get(aid, {}).get("full_name", aid),
+                    "athlete": ath_data.get("full_name", aid),
+                    "slug": ath_data.get("slug") or _slugify(ath_data.get("full_name", aid)),
                     "position": res["position"],
                     "points": res["points"],
                 })
         res_list.sort(key=lambda r: r["position"])
         races_detail.append({
+            "id": race["id"],
             "name": race["name"],
             "short": _race_short(race),
             "date": _fmt_date(race),
@@ -673,6 +705,8 @@ def get_user_detail(username: str) -> dict | None:
         "league_avg": round(league_avg, 1),
         "races": races_detail,
         "race_labels": race_labels,
+        "race_ids": [r["id"] for r in completed],
+        "race_names": [r["name"] for r in completed],
         "race_points": per_race,
         "per_race_rank": per_race_rank,
         "cumulative_points": cumulative,
@@ -736,7 +770,7 @@ def get_race_detail(race_id: str, user_id: str | None = None) -> dict | None:
     if athlete_ids:
         ath_rows = (
             db.table("athletes")
-            .select("id,full_name,team,nationality,pcs_slug,status")
+            .select("id,full_name,team,nationality,pcs_slug,slug,status")
             .in_("id", athlete_ids)
             .execute()
             .data
@@ -779,13 +813,17 @@ def get_race_detail(race_id: str, user_id: str | None = None) -> dict | None:
     for rr in result_rows:
         aid = rr["athlete_id"]
         ath = athletes_map.get(aid, {})
+        full_name = ath.get("full_name", "—")
+        pcs_slug = ath.get("pcs_slug") or ""
         results.append({
             "position": rr["position"],
             "athlete_id": aid,
-            "full_name": ath.get("full_name", "—"),
+            "full_name": full_name,
             "team": ath.get("team") or "",
             "flag": _flag(ath.get("nationality")),
-            "pcs_slug": ath.get("pcs_slug") or "",
+            "pcs_slug": pcs_slug,
+            "slug": ath.get("slug") or _slugify(full_name),
+            "photo_url": _athlete_photo_url(pcs_slug),
             "status": ath.get("status", "active"),
             "points": rr["points"],
             "result_status": rr.get("status", "ok"),
@@ -827,22 +865,26 @@ def get_race_detail(race_id: str, user_id: str | None = None) -> dict | None:
     }
 
 
-def get_athlete_detail(athlete_id: str) -> dict | None:
+def get_athlete_detail(slug: str) -> dict | None:
     db = get_db()
-    rows = db.table("athletes").select("*").eq("id", athlete_id).limit(1).execute().data
+    rows = db.table("athletes").select("*").eq("slug", slug).limit(1).execute().data
     if not rows:
         return None
     ath_row = rows[0]
+    athlete_id = ath_row["id"]
 
     season = _load_season()
     if not season:
+        pcs_slug = ath_row.get("pcs_slug") or ""
         return {
             "id": athlete_id,
             "full_name": ath_row["full_name"],
             "team": ath_row.get("team") or "",
             "nationality": ath_row.get("nationality") or "",
             "flag": _flag(ath_row.get("nationality")),
-            "pcs_slug": ath_row.get("pcs_slug") or "",
+            "pcs_slug": pcs_slug,
+            "slug": ath_row.get("slug") or slug,
+            "photo_url": _athlete_photo_url(pcs_slug),
             "owner": None,
             "total_points": 0,
             "best": "—",
@@ -884,6 +926,7 @@ def get_athlete_detail(athlete_id: str) -> dict | None:
         race_pts_list.append(pts)
         if res:
             races_detail.append({
+                "id": race["id"],
                 "name": race["name"],
                 "short": _race_short(race),
                 "date": _fmt_date(race),
@@ -897,13 +940,16 @@ def get_athlete_detail(athlete_id: str) -> dict | None:
     pos_emoji = {1: "🥇", 2: "🥈", 3: "🥉"}.get(best_pos, f"{best_pos}°" if best_pos else "—")
     best_str = f"{pos_emoji} {best_race_name}" if best_race_name else "—"
 
+    pcs_slug = ath_row.get("pcs_slug") or ""
     return {
         "id": athlete_id,
         "full_name": ath_row["full_name"],
         "team": ath_row.get("team") or "",
         "nationality": ath_row.get("nationality") or "",
         "flag": _flag(ath_row.get("nationality")),
-        "pcs_slug": ath_row.get("pcs_slug") or "",
+        "pcs_slug": pcs_slug,
+        "slug": ath_row.get("slug") or slug,
+        "photo_url": _athlete_photo_url(pcs_slug),
         "status": ath_row.get("status", "active"),
         "owner": owner,
         "total_points": sum(race_pts_list),

@@ -109,12 +109,18 @@
       <div class="space-y-2 border-t border-base-50 pt-4">
         {% for r in us.athletes %}
         <div class="flex items-center gap-3">
+          {% if r.photo_url %}
+          <a href="/athletes/{{ r.slug }}" class="shrink-0 w-7 h-8 rounded-md overflow-hidden shadow-sm ring-1 ring-base-200">
+            <img src="{{ r.photo_url }}" alt="{{ r.full_name }}" class="w-full h-full object-cover object-top">
+          </a>
+          {% else %}
           <span
-            class="w-6 h-6 rounded-lg bg-base-50 flex items-center justify-center text-[12px] font-bold italic text-base-content/40">
+            class="w-6 h-6 rounded-lg bg-base-50 flex items-center justify-center text-[12px] font-bold italic text-base-content/40 shrink-0">
             {% if r.position == 1 %}🥇{% elif r.position == 2 %}🥈{% elif r.position == 3 %}🥉{% else %}{{ r.position
             }}{% endif %}
           </span>
-          <a href="/athletes/{{ r.athlete_id }}"
+          {% endif %}
+          <a href="/athletes/{{ r.slug }}"
             class="flex-1 font-bold text-[12px] italic text-base-content/60 hover:text-primary transition-colors truncate uppercase">{{
             r.full_name }}</a>
           <span class="text-[12px] font-black text-primary/70">+{{ r.points }}</span>
@@ -177,11 +183,17 @@
 
           <td>
             <div class="flex items-center gap-3">
-              <span class="text-xl leading-none opacity-80">{{ r.flag }}</span>
+              {% if r.photo_url %}
+              <a href="/athletes/{{ r.slug }}" class="shrink-0 w-9 h-11 rounded-lg overflow-hidden shadow-sm ring-1 ring-base-200 {% if r.is_mine %}ring-primary/30{% endif %}">
+                <img src="{{ r.photo_url }}" alt="{{ r.full_name }}" class="w-full h-full object-cover object-top">
+              </a>
+              {% else %}
+              <span class="text-xl leading-none opacity-80 shrink-0">{{ r.flag }}</span>
+              {% endif %}
               <div>
-                <a href="/athletes/{{ r.athlete_id }}" class="font-black text-sm uppercase italic hover:text-primary transition-colors block
+                <a href="/athletes/{{ r.slug }}" class="font-black text-sm uppercase italic hover:text-primary transition-colors block
                    {% if r.is_mine %}text-primary{% endif %}">
-                  {{ r.full_name }}
+                  {% if r.photo_url %}{{ r.flag }} {% endif %}{{ r.full_name }}
                 </a>
                 {% if r.result_status == 'dns' %}
                 <span class="badge badge-ghost badge-xs font-bold text-[12px] opacity-40 italic">DNS</span>

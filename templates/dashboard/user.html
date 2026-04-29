@@ -146,7 +146,8 @@
       <div class="flex items-end gap-3 h-32">
         {% for pts in user.race_points %}
         {% set bar_pct = (pts / user.max_race_pts * 100) | int if user.max_race_pts > 0 else 0 %}
-        <div class="flex-1 flex flex-col items-center gap-2 group">
+        {% set race_id = user.race_ids[loop.index0] %}
+        <a href="/races/{{ race_id }}" title="{{ user.race_names[loop.index0] }}" class="flex-1 flex flex-col items-center gap-2 group">
           <div class="w-full rounded-t-xl transition-all duration-500 relative
             {% if pts == user.max_race_pts and pts > 0 %}bg-yellow-400
             {% elif pts > 0 %}bg-primary/30 group-hover:bg-primary/40
@@ -158,9 +159,9 @@
               +{{ pts }}</div>
             {% endif %}
           </div>
-          <span class="text-[12px] font-bold text-base-content/50 uppercase tracking-tighter">{{
+          <span class="text-[12px] font-bold text-base-content/50 group-hover:text-primary uppercase tracking-tighter transition-colors">{{
             user.race_labels[loop.index0] }}</span>
-        </div>
+        </a>
         {% endfor %}
       </div>
     </div>
@@ -189,12 +190,19 @@
       {% endif %}
 
       <div class="flex items-start justify-between mb-4">
-        <div class="min-w-0 flex-1">
-          <a href="/athletes/{{ ath.id }}"
-            class="font-black text-lg leading-tight hover:text-primary transition-colors block truncate uppercase italic tracking-tight">{{
-            ath.full_name }}</a>
-          <div class="text-[12px] font-bold text-base-content/50 uppercase mt-1 tracking-tighter">{{ ath.flag }} {{
-            ath.team }}</div>
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          {% if ath.photo_url %}
+          <a href="/athletes/{{ ath.slug }}" class="shrink-0 w-12 h-14 rounded-xl overflow-hidden shadow-sm ring-1 ring-base-200">
+            <img src="{{ ath.photo_url }}" alt="{{ ath.full_name }}" class="w-full h-full object-cover object-top">
+          </a>
+          {% endif %}
+          <div class="min-w-0">
+            <a href="/athletes/{{ ath.slug }}"
+              class="font-black text-lg leading-tight hover:text-primary transition-colors block truncate uppercase italic tracking-tight">{{
+              ath.full_name }}</a>
+            <div class="text-[12px] font-bold text-base-content/50 uppercase mt-1 tracking-tighter">{{ ath.flag }} {{
+              ath.team }}</div>
+          </div>
         </div>
         <div class="text-right shrink-0 ml-4">
           <div
@@ -262,7 +270,7 @@
         <tr class="group hover:bg-primary/[0.02] border-b border-base-50">
           {% if loop.first %}
           <td rowspan="{{ race.results|length + 1 }}" class="p-6 align-top border-r border-base-50 w-48 bg-base-50/30">
-            <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
+            <a href="/races/{{ race.id }}" class="font-black text-sm leading-tight uppercase italic mb-1 hover:text-primary transition-colors block">{{ race.name }}</a>
             <div class="text-[14px] font-bold text-base-content/50 italic">{{ race.date }}</div>
 
             <div class="mt-4">
@@ -277,7 +285,9 @@
             </div>
           </td>
           {% endif %}
-          <td class="text-xs font-bold text-base-content/60 uppercase tracking-tighter">{{ res.athlete }}</td>
+          <td class="text-xs font-bold text-base-content/60 uppercase tracking-tighter">
+            <a href="/athletes/{{ res.slug }}" class="hover:text-primary transition-colors">{{ res.athlete }}</a>
+          </td>
           <td class="text-center">
             {% if res.position == 1 %}
             <span
@@ -303,7 +313,7 @@
         {% else %}
         <tr class="hover:bg-base-50 border-b border-base-200">
           <td class="p-6 w-48 bg-base-50/30">
-            <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
+            <a href="/races/{{ race.id }}" class="font-black text-sm leading-tight uppercase italic mb-1 hover:text-primary transition-colors block">{{ race.name }}</a>
             <div class="text-[14px] font-bold text-base-content/50 italic">{{ race.date }}</div>
           </td>
           <td colspan="3"

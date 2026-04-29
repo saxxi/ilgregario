@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import requests
 from bs4 import BeautifulSoup
 from database import get_db
+from db_queries import _slugify
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -176,16 +177,18 @@ def run(year: int = 2026, circuits: list[str] | None = None, cache_dir: str | No
         log.info("  %d riders", len(riders))
 
         for rider in riders:
+            slug = rider["pcs_slug"] or _slugify(rider["full_name"])
             existing = db.table("athletes").select("id").eq("pcs_slug", rider["pcs_slug"]).execute()
             if existing.data:
                 db.table("athletes").update({
                     "full_name": rider["full_name"],
                     "nationality": rider["nationality"],
                     "team": rider["team"],
+                    "slug": slug,
                 }).eq("pcs_slug", rider["pcs_slug"]).execute()
                 updated += 1
             else:
-                db.table("athletes").insert(rider).execute()
+                db.table("athletes").insert({**rider, "slug": slug}).execute()
                 inserted += 1
 
     summary = {"inserted": inserted, "updated": updated, "skipped": skipped, "teams": len(teams)}

@@ -1,13 +1,19 @@
 import asyncio
+import sys
+import os
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, BackgroundTasks, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 import auth as auth_module
 from database import get_db
+from db_queries import _slugify
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scripts.fetch_athlete_photos import run_missing as _run_missing_photos
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -404,6 +410,15 @@ async def athletes_list(request: Request, msg: str = "", q: str = ""):
     )
 
 
+@router.post("/admin/athletes/fetch-photos")
+async def athletes_fetch_photos(request: Request, background_tasks: BackgroundTasks):
+    session, err = _guard(request)
+    if err:
+        return err
+    background_tasks.add_task(_run_missing_photos)
+    return _redir("/admin/athletes", "Download foto avviato in background — controlla i log del server.")
+
+
 @router.post("/admin/athletes/create")
 async def athletes_create(
     request: Request,
@@ -419,9 +434,12 @@ async def athletes_create(
         return err
     db = get_db()
     try:
+        name = full_name.strip()
+        slug_val = pcs_slug.strip() or _slugify(name)
         db.table("athletes").insert({
-            "full_name": full_name.strip(),
+            "full_name": name,
             "pcs_slug": pcs_slug.strip() or None,
+            "slug": slug_val,
             "nationality": nationality.strip() or None,
             "team": team.strip() or None,
             "firstcycling_id": int(firstcycling_id) if firstcycling_id.strip() else None,
@@ -445,9 +463,12 @@ async def athletes_edit(
     session, err = _guard(request)
     if err:
         return err
+    name = full_name.strip()
+    slug_val = pcs_slug.strip() or _slugify(name)
     get_db().table("athletes").update({
-        "full_name": full_name.strip(),
+        "full_name": name,
         "pcs_slug": pcs_slug.strip() or None,
+        "slug": slug_val,
         "nationality": nationality.strip() or None,
         "team": team.strip() or None,
         "status": status,

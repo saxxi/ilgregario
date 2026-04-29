@@ -11,16 +11,67 @@
 </div>
 
 {# ── Athlete Hero Header ── #}
-<div class="relative overflow-hidden bg-white border border-base-200 rounded-3xl shadow-md p-8 mb-10">
+<div class="relative overflow-hidden rounded-3xl shadow-md mb-10
+  {% if athlete.photo_url %}bg-slate-900 text-white border-0{% else %}bg-white border border-base-200{% endif %} p-8">
 
-  {# Background nationality decoration #}
+  {# Background nationality watermark #}
   {% if athlete.nationality %}
   <div
-    class="absolute -right-8 -bottom-12 font-black text-[120px] italic text-base-content/[0.02] select-none pointer-events-none uppercase">
+    class="absolute -right-8 -bottom-12 font-black text-[120px] italic select-none pointer-events-none uppercase
+    {% if athlete.photo_url %}text-white/[0.03]{% else %}text-base-content/[0.02]{% endif %}">
     {{ athlete.nationality[:3] }}
   </div>
   {% endif %}
 
+  {% if athlete.photo_url %}
+  {# Photo version: full-bleed image on the right, info on the left #}
+  <div class="absolute inset-0 overflow-hidden rounded-3xl">
+    <img src="{{ athlete.photo_url }}" alt="{{ athlete.full_name }}"
+      class="absolute right-0 top-0 h-full w-[45%] object-cover object-top opacity-30 [mask-image:linear-gradient(to_left,rgba(0,0,0,0.6),transparent)]">
+    <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent"></div>
+  </div>
+
+  <div class="relative z-10 flex items-start justify-between flex-wrap gap-8">
+    <div class="flex items-start gap-6 flex-1 min-w-0">
+      <div class="shrink-0 w-28 h-36 rounded-2xl overflow-hidden shadow-xl ring-2 ring-white/10">
+        <img src="{{ athlete.photo_url }}" alt="{{ athlete.full_name }}" class="w-full h-full object-cover object-top">
+      </div>
+
+      <div class="min-w-0">
+        <div class="flex items-center gap-3 flex-wrap mb-3">
+          <span class="text-3xl">{{ athlete.flag or "🚴" }}</span>
+          {% if athlete.status == 'injured' %}
+          <span class="badge badge-sm bg-error border-none font-bold text-white uppercase text-[12px] italic">Infortunato</span>
+          {% elif athlete.status == 'paused' %}
+          <span class="badge badge-sm bg-warning border-none font-bold text-yellow-950 uppercase text-[12px] italic">In Pausa</span>
+          {% endif %}
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black tracking-tighter italic uppercase leading-none text-white mb-3">
+          {{ athlete.full_name }}
+        </h1>
+        <div class="text-[13px] font-black text-primary uppercase tracking-[0.2em] italic mb-1">{{ athlete.team }}</div>
+        {% if athlete.nationality %}
+        <div class="text-[12px] font-bold text-white/40 uppercase tracking-widest">{{ athlete.nationality }}</div>
+        {% endif %}
+        {% if athlete.pcs_slug %}
+        <div class="mt-4">
+          <a href="https://www.procyclingstats.com/rider/{{ athlete.pcs_slug }}" target="_blank" rel="noopener"
+            class="btn btn-xs btn-outline border-white/20 text-white/60 font-bold italic text-[12px] hover:bg-white/10 hover:border-white/30 uppercase">
+            Pro Cycling Stats ↗
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="text-right shrink-0">
+      <div class="text-[12px] font-bold text-white/40 uppercase tracking-widest mb-1">Punti Stagione</div>
+      <div class="text-6xl font-black tracking-tighter italic text-primary">{{ athlete.total_points }}</div>
+    </div>
+  </div>
+
+  {% else %}
+  {# No-photo version: flag avatar #}
   <div class="flex items-start gap-8 flex-wrap relative z-10">
     <div
       class="w-24 h-24 rounded-2xl bg-base-50 flex items-center justify-center text-4xl shrink-0 shadow-inner border border-base-100">
@@ -32,11 +83,9 @@
         <h1 class="text-4xl font-black tracking-tighter italic uppercase leading-none">{{ athlete.full_name }}</h1>
         <div class="flex gap-2">
           {% if athlete.status == 'injured' %}
-          <span
-            class="badge badge-sm bg-error border-none font-bold text-white uppercase text-[12px] italic">Infortunato</span>
+          <span class="badge badge-sm bg-error border-none font-bold text-white uppercase text-[12px] italic">Infortunato</span>
           {% elif athlete.status == 'paused' %}
-          <span class="badge badge-sm bg-warning border-none font-bold text-yellow-950 uppercase text-[12px] italic">In
-            Pausa</span>
+          <span class="badge badge-sm bg-warning border-none font-bold text-yellow-950 uppercase text-[12px] italic">In Pausa</span>
           {% endif %}
         </div>
       </div>
@@ -44,12 +93,10 @@
       <div class="flex flex-col gap-1">
         <div class="text-[12px] font-black text-primary uppercase tracking-[0.2em] italic">{{ athlete.team }}</div>
         {% if athlete.nationality %}
-        <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest">{{ athlete.nationality }}
-        </div>
+        <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest">{{ athlete.nationality }}</div>
         {% endif %}
       </div>
 
-      {# External Links #}
       {% if athlete.pcs_slug %}
       <div class="mt-4">
         <a href="https://www.procyclingstats.com/rider/{{ athlete.pcs_slug }}" target="_blank" rel="noopener"
@@ -65,25 +112,28 @@
       <div class="text-6xl font-black tracking-tighter italic text-primary">{{ athlete.total_points }}</div>
     </div>
   </div>
+  {% endif %}
 
   {# Stat Cards Grid #}
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-10 pt-8 border-t border-base-50">
-    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Gare a Punti</div>
-      <div class="text-2xl font-black italic">{{ athlete.races|length }}</div>
+  {% set card_cls = "rounded-2xl p-4 border " + ("bg-white/5 border-white/10" if athlete.photo_url else "bg-base-50/50 border-base-100") %}
+  {% set label_cls = "text-[12px] font-bold uppercase tracking-widest mb-1 " + ("text-white/40" if athlete.photo_url else "text-base-content/40") %}
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-10 pt-8 {% if athlete.photo_url %}border-t border-white/10 relative z-10{% else %}border-t border-base-50{% endif %}">
+    <div class="{{ card_cls }}">
+      <div class="{{ label_cls }}">Gare a Punti</div>
+      <div class="text-2xl font-black italic {% if athlete.photo_url %}text-white{% endif %}">{{ athlete.races|length }}</div>
     </div>
-    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Miglior Risultato</div>
+    <div class="{{ card_cls }}">
+      <div class="{{ label_cls }}">Miglior Risultato</div>
       <div class="text-2xl font-black italic text-success uppercase truncate tracking-tighter">{{ athlete.best }}</div>
     </div>
-    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">In Rosa Di</div>
+    <div class="{{ card_cls }}">
+      <div class="{{ label_cls }}">In Rosa Di</div>
       {% if athlete.owner %}
       <a href="/users/{{ athlete.owner }}" class="block hover:text-primary transition-colors">
-        <div class="text-2xl font-black italic truncate uppercase tracking-tighter">{{ athlete.owner }}</div>
+        <div class="text-2xl font-black italic truncate uppercase tracking-tighter {% if athlete.photo_url %}text-white{% endif %}">{{ athlete.owner }}</div>
       </a>
       {% else %}
-      <div class="text-2xl font-black italic text-base-content/45 uppercase tracking-tighter">Svincolato</div>
+      <div class="text-2xl font-black italic uppercase tracking-tighter {% if athlete.photo_url %}text-white/30{% else %}text-base-content/45{% endif %}">Svincolato</div>
       {% endif %}
     </div>
   </div>
@@ -148,7 +198,7 @@
         {% for race in athlete.races %}
         <tr class="group hover:bg-primary/[0.02] border-b border-base-50">
           <td class="p-6">
-            <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
+            <a href="/races/{{ race.id }}" class="font-black text-sm leading-tight uppercase italic mb-1 hover:text-primary transition-colors block">{{ race.name }}</a>
             <div class="text-[14px] font-bold text-base-content/50 italic">{{ race.date }}</div>
           </td>
           <td class="text-center">

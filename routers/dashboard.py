@@ -166,10 +166,10 @@ async def account_update(
     return response
 
 
-@router.get("/athletes/{athlete_id}", response_class=HTMLResponse)
-async def athlete_detail(request: Request, athlete_id: str):
+@router.get("/athletes/{slug}", response_class=HTMLResponse)
+async def athlete_detail(request: Request, slug: str):
     session = auth_module.get_session(request)
-    detail = db_queries.get_athlete_detail(athlete_id)
+    detail = db_queries.get_athlete_detail(slug)
     if detail is None:
         return HTMLResponse("Atleta non trovato", status_code=404)
     return templates.TemplateResponse(

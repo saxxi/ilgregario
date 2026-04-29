@@ -529,12 +529,18 @@
       <div class="bg-base-100 rounded-3xl border border-base-200 shadow-sm overflow-hidden divide-y divide-base-100">
         {% for ath in top_athletes %}
         <div class="flex items-center gap-4 p-4 hover:bg-base-50 transition-colors group">
+          {% if ath.photo_url %}
+          <a href="/athletes/{{ ath.slug }}" class="shrink-0 w-10 h-10 rounded-xl overflow-hidden shadow-sm ring-1 ring-base-200 group-hover:ring-primary/30 transition-all">
+            <img src="{{ ath.photo_url }}" alt="{{ ath.full_name }}" class="w-full h-full object-cover object-top">
+          </a>
+          {% else %}
           <div
-            class="w-8 h-8 rounded-lg bg-base-50 flex items-center justify-center font-black italic text-base-content/50 text-lg group-hover:text-primary transition-colors">
+            class="w-8 h-8 rounded-lg bg-base-50 flex items-center justify-center font-black italic text-base-content/50 text-lg group-hover:text-primary transition-colors shrink-0">
             {{ ath.rank }}
           </div>
+          {% endif %}
           <div class="flex-1 min-w-0">
-            <a href="/athletes/{{ ath.id }}"
+            <a href="/athletes/{{ ath.slug }}"
               class="font-bold text-sm hover:text-primary transition-colors block truncate uppercase tracking-tighter">{{
               ath.flag }} {{ ath.full_name }}</a>
             <div class="text-[12px] font-bold text-base-content/50 uppercase mt-0.5">{{ ath.team }}</div>
