@@ -4,6 +4,7 @@ Every function returns the same dict shape that templates expect.
 """
 
 from datetime import date, datetime, timezone
+from markupsafe import Markup, escape
 from database import get_db
 from scoring import gc_points
 
@@ -446,21 +447,28 @@ def get_next_race() -> dict:
     }
 
 
-def get_season_narrative(leaderboard: list[dict], races_done: int, races_total: int) -> str:
+def _user_link(username: str) -> Markup:
+    u = escape(username)
+    return Markup(f'<a href="/users/{u}" class="underline hover:opacity-70">{u}</a>')
+
+
+def get_season_narrative(leaderboard: list[dict], races_done: int, races_total: int) -> Markup:
     if not leaderboard:
-        return "La stagione non è ancora iniziata."
+        return Markup("La stagione non è ancora iniziata.")
     leader = leaderboard[0]
     second = leaderboard[1] if len(leaderboard) > 1 else None
     remaining = races_total - races_done
     if second is None:
-        return f"{leader['username']} è solo in testa con {leader['total_points']} punti."
+        return Markup(f"{_user_link(leader['username'])} è solo in testa con {leader['total_points']} punti.")
     gap = abs(second["gap"])
+    l = _user_link(leader["username"])
+    s = _user_link(second["username"])
     if gap == 0:
-        return f"🔥 Parità assoluta! {leader['username']} e {second['username']} al comando — tutto si decide nelle ultime {remaining} gare."
+        return Markup(f"🔥 Parità assoluta! {l} e {s} al comando — tutto si decide nelle ultime {remaining} gare.")
     elif gap <= 5:
-        return f"Solo {gap} pt separano {leader['username']} da {second['username']} — lotta aperta con {remaining} gare rimaste."
+        return Markup(f"Solo {gap} pt separano {l} da {s} — lotta aperta con {remaining} gare rimaste.")
     else:
-        return f"{leader['username']} guida con {leader['total_points']} pt, {gap} di vantaggio su {second['username']} — {remaining} gare alla fine."
+        return Markup(f"{l} guida con {leader['total_points']} pt, {gap} di vantaggio su {s} — {remaining} gare alla fine.")
 
 
 def get_season_progress(season) -> dict:

@@ -5,7 +5,7 @@
 {# ── Navigation & Actions ── #}
 <div class="flex items-center justify-between mb-8">
   <a href="/races"
-    class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[11px]">
+    class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[12px]">
     ← Tutte le gare
   </a>
 </div>
@@ -22,40 +22,40 @@
   <div class="flex items-start gap-8 flex-wrap relative z-10">
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2 mb-2">
-        <span class="badge badge-primary badge-sm font-bold tracking-wider uppercase italic text-[11px]">
+        <span class="badge badge-primary badge-sm font-bold tracking-wider uppercase italic text-[12px]">
           {% if race.race_type == "one_day" %}Classica{% else %}Giro a tappe{% endif %}
         </span>
         {% if not race.is_completed %}
-        <span class="badge badge-sm bg-base-100 border-base-200 font-bold text-base-content/40 italic text-[11px]">IN
+        <span class="badge badge-sm bg-base-100 border-base-200 font-bold text-base-content/40 italic text-[12px]">IN
           ARRIVO</span>
         {% else %}
-        <span class="badge badge-sm bg-success/10 border-none text-success font-bold italic text-[11px]">COMPLETATA
+        <span class="badge badge-sm bg-success/10 border-none text-success font-bold italic text-[12px]">COMPLETATA
           ✓</span>
         {% endif %}
       </div>
 
       <h1 class="text-4xl md:text-5xl font-black tracking-tighter italic uppercase leading-none mb-3">{{ race.name }}
       </h1>
-      <div class="text-[11px] font-bold text-base-content/50 uppercase tracking-[0.2em] italic">{{ race.date }}</div>
+      <div class="text-[12px] font-bold text-base-content/50 uppercase tracking-[0.2em] italic">{{ race.date }}</div>
     </div>
 
     <div class="flex gap-2 flex-wrap shrink-0 items-start">
       <div class="flex gap-2">
         {% if race.race_type == "stage_race" and race.num_stages %}
         <div class="bg-base-50 px-3 py-1.5 rounded-xl border border-base-100 flex flex-col items-center">
-          <span class="text-[11px] font-bold text-base-content/50 uppercase">Tappe</span>
+          <span class="text-[12px] font-bold text-base-content/50 uppercase">Tappe</span>
           <span class="text-sm font-black italic">{{ race.num_stages }}</span>
         </div>
         {% endif %}
         {% if race.difficulty %}
         <div class="bg-base-50 px-3 py-1.5 rounded-xl border border-base-100 flex flex-col items-center">
-          <span class="text-[11px] font-bold text-base-content/50 uppercase">Diff</span>
+          <span class="text-[12px] font-bold text-base-content/50 uppercase">Diff</span>
           <span class="text-sm font-black italic">D{{ race.difficulty }}</span>
         </div>
         {% endif %}
         {% if race.prestige %}
         <div class="bg-yellow-400/10 px-3 py-1.5 rounded-xl border border-yellow-400/20 flex flex-col items-center">
-          <span class="text-[11px] font-bold text-yellow-600/50 uppercase">Pres</span>
+          <span class="text-[12px] font-bold text-yellow-600/50 uppercase">Pres</span>
           <span class="text-sm font-black italic text-yellow-600">P{{ race.prestige }}</span>
         </div>
         {% endif %}
@@ -65,7 +65,7 @@
       {% set pcs_path = "result" if race.race_type == "one_day" else "gc" %}
       <a href="https://www.procyclingstats.com/race/{{ race.pcs_slug }}/{{ race.year }}/{{ pcs_path }}" target="_blank"
         rel="noopener"
-        class="btn btn-xs btn-outline border-base-200 font-bold italic text-[11px] hover:bg-primary hover:border-primary uppercase">
+        class="btn btn-xs btn-outline border-base-200 font-bold italic text-[12px] hover:bg-primary hover:border-primary uppercase">
         PCS ↗
       </a>
       {% endif %}
@@ -79,7 +79,7 @@
   <div class="flex items-center justify-between mb-8 px-2">
     <h3 class="text-2xl font-black italic uppercase tracking-tight">Punteggi <span
         class="text-primary">Fantaciclo</span></h3>
-    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Live Scores</p>
+    <p class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Live Scores</p>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -90,7 +90,7 @@
 
       {% if loop.first and us.total > 0 %}
       <div
-        class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 font-bold text-[11px] px-2 py-0.5 rounded-bl-lg">
+        class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 font-bold text-[12px] px-2 py-0.5 rounded-bl-lg">
         WINNER</div>
       {% endif %}
 
@@ -102,7 +102,7 @@
           <div
             class="text-3xl font-black tracking-tighter italic {% if us.username == race.my_username %}text-primary{% endif %}">
             +{{ us.total }}</div>
-          <div class="text-[11px] font-bold text-base-content/45 uppercase">PTS</div>
+          <div class="text-[12px] font-bold text-base-content/45 uppercase">PTS</div>
         </div>
       </div>
 
@@ -110,14 +110,14 @@
         {% for r in us.athletes %}
         <div class="flex items-center gap-3">
           <span
-            class="w-6 h-6 rounded-lg bg-base-50 flex items-center justify-center text-[11px] font-bold italic text-base-content/40">
+            class="w-6 h-6 rounded-lg bg-base-50 flex items-center justify-center text-[12px] font-bold italic text-base-content/40">
             {% if r.position == 1 %}🥇{% elif r.position == 2 %}🥈{% elif r.position == 3 %}🥉{% else %}{{ r.position
             }}{% endif %}
           </span>
           <a href="/athletes/{{ r.athlete_id }}"
-            class="flex-1 font-bold text-[11px] italic text-base-content/60 hover:text-primary transition-colors truncate uppercase">{{
+            class="flex-1 font-bold text-[12px] italic text-base-content/60 hover:text-primary transition-colors truncate uppercase">{{
             r.full_name }}</a>
-          <span class="text-[11px] font-black text-primary/70">+{{ r.points }}</span>
+          <span class="text-[12px] font-black text-primary/70">+{{ r.points }}</span>
         </div>
         {% endfor %}
       </div>
@@ -138,13 +138,13 @@
   <div class="flex items-center justify-between mb-8 px-2">
     <h3 class="text-2xl font-black italic uppercase tracking-tight">Classifica <span class="text-primary">Gara</span>
     </h3>
-    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Arrivo</p>
+    <p class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Arrivo</p>
   </div>
 
   <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm overflow-hidden">
     <table class="table table-lg">
       <thead class="bg-base-50/50">
-        <tr class="text-[11px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
+        <tr class="text-[12px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
           <th class="w-20 text-center p-6">POS</th>
           <th>ATLETA</th>
           <th class="hidden md:table-cell">TEAM</th>
@@ -184,25 +184,25 @@
                   {{ r.full_name }}
                 </a>
                 {% if r.result_status == 'dns' %}
-                <span class="badge badge-ghost badge-xs font-bold text-[11px] opacity-40 italic">DNS</span>
+                <span class="badge badge-ghost badge-xs font-bold text-[12px] opacity-40 italic">DNS</span>
                 {% elif r.result_status == 'dnf' %}
-                <span class="badge badge-ghost badge-xs font-bold text-[11px] opacity-40 italic">DNF</span>
+                <span class="badge badge-ghost badge-xs font-bold text-[12px] opacity-40 italic">DNF</span>
                 {% endif %}
               </div>
             </div>
           </td>
 
-          <td class="hidden md:table-cell text-[11px] font-bold text-base-content/50 uppercase tracking-tighter">{{
+          <td class="hidden md:table-cell text-[12px] font-bold text-base-content/50 uppercase tracking-tighter">{{
             r.team }}</td>
 
           <td class="hidden sm:table-cell">
             {% if r.owner %}
-            <a href="/users/{{ r.owner }}" class="text-[11px] font-bold bg-base-100 px-2 py-1 rounded-lg border border-base-200 hover:text-primary transition-colors
+            <a href="/users/{{ r.owner }}" class="text-[12px] font-bold bg-base-100 px-2 py-1 rounded-lg border border-base-200 hover:text-primary transition-colors
               {% if r.is_mine %}text-primary border-primary/20 bg-primary/5{% endif %}">
               {{ r.owner | upper }}
             </a>
             {% else %}
-            <span class="text-[11px] font-bold text-base-content/10 uppercase tracking-widest italic">—</span>
+            <span class="text-[12px] font-bold text-base-content/10 uppercase tracking-widest italic">—</span>
             {% endif %}
           </td>
 

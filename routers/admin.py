@@ -164,7 +164,7 @@ async def seasons_list(request: Request, msg: str = ""):
         return err
     seasons = (
         get_db().table("seasons")
-        .select("id, name, year, active, created_at")
+        .select("id, name, year, active, created_at, total_budget, min_runners, max_runners")
         .order("year", desc=True)
         .execute()
         .data or []
@@ -176,7 +176,13 @@ async def seasons_list(request: Request, msg: str = ""):
 
 
 @router.post("/admin/seasons/create")
-async def seasons_create(request: Request, year: str = Form(...)):
+async def seasons_create(
+    request: Request,
+    year: str = Form(...),
+    total_budget: str = Form(default="500"),
+    min_runners: str = Form(default="9"),
+    max_runners: str = Form(default="30"),
+):
     session, err = _guard(request)
     if err:
         return err
@@ -184,8 +190,33 @@ async def seasons_create(request: Request, year: str = Form(...)):
         get_db().table("seasons").insert({
             "name": str(int(year)),
             "year": int(year),
+            "total_budget": int(total_budget) if total_budget.strip() else 500,
+            "min_runners": int(min_runners) if min_runners.strip() else 9,
+            "max_runners": int(max_runners) if max_runners.strip() else 30,
         }).execute()
         return _redir("/admin/seasons", "Stagione creata")
+    except Exception as exc:
+        return _redir("/admin/seasons", f"Errore: {exc}")
+
+
+@router.post("/admin/seasons/{season_id}/edit")
+async def seasons_edit(
+    request: Request,
+    season_id: str,
+    total_budget: str = Form(default="500"),
+    min_runners: str = Form(default="9"),
+    max_runners: str = Form(default="30"),
+):
+    session, err = _guard(request)
+    if err:
+        return err
+    try:
+        get_db().table("seasons").update({
+            "total_budget": int(total_budget) if total_budget.strip() else 500,
+            "min_runners": int(min_runners) if min_runners.strip() else 9,
+            "max_runners": int(max_runners) if max_runners.strip() else 30,
+        }).eq("id", season_id).execute()
+        return _redir("/admin/seasons", "Stagione aggiornata")
     except Exception as exc:
         return _redir("/admin/seasons", f"Errore: {exc}")
 
@@ -255,6 +286,23 @@ async def user_athletes_delete(request: Request, user_id: str, ua_id: str, seaso
     get_db().table("user_athletes").delete().eq("id", ua_id).execute()
     dest = f"/admin/users/{user_id}" + (f"?season_id={season_id}" if season_id else "")
     return _redir(dest, "Atleta rimosso")
+
+
+@router.post("/admin/users/{user_id}/athletes/{ua_id}/edit-price")
+async def user_athletes_edit_price(
+    request: Request,
+    user_id: str,
+    ua_id: str,
+    acquisition_price: str = Form(default=""),
+    season_id: str = Form(default=""),
+):
+    session, err = _guard(request)
+    if err:
+        return err
+    price = float(acquisition_price) if acquisition_price.strip() else None
+    get_db().table("user_athletes").update({"acquisition_price": price}).eq("id", ua_id).execute()
+    dest = f"/admin/users/{user_id}" + (f"?season_id={season_id}" if season_id else "")
+    return _redir(dest, "Prezzo aggiornato")
 
 
 @router.post("/admin/users/{user_id}/edit")

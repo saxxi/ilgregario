@@ -3,15 +3,29 @@
 {% block admin_content %}
 <h2 class="text-2xl font-bold mb-6">Stagioni</h2>
 
-<div class="card bg-base-100 shadow-sm max-w-xs mb-8">
+<div class="card bg-base-100 shadow-sm max-w-lg mb-8">
   <div class="card-body">
     <h3 class="card-title text-base">Crea stagione</h3>
-    <form method="post" action="/admin/seasons/create" class="flex gap-2 items-end">
-      <label class="form-control flex-1">
+    <form method="post" action="/admin/seasons/create" class="grid grid-cols-2 gap-3">
+      <label class="form-control col-span-2 sm:col-span-1">
         <div class="label"><span class="label-text">Anno</span></div>
         <input name="year" type="number" value="2026" required class="input input-bordered input-sm">
       </label>
-      <button type="submit" class="btn btn-primary btn-sm mb-0.5">Crea</button>
+      <label class="form-control col-span-2 sm:col-span-1">
+        <div class="label"><span class="label-text">Budget totale (fantamilioni)</span></div>
+        <input name="total_budget" type="number" value="500" min="1" required class="input input-bordered input-sm">
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Min corridori</span></div>
+        <input name="min_runners" type="number" value="9" min="1" required class="input input-bordered input-sm">
+      </label>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Max corridori</span></div>
+        <input name="max_runners" type="number" value="30" min="1" required class="input input-bordered input-sm">
+      </label>
+      <div class="col-span-2">
+        <button type="submit" class="btn btn-primary btn-sm">Crea</button>
+      </div>
     </form>
   </div>
 </div>
@@ -21,6 +35,8 @@
     <thead>
       <tr>
         <th>Anno</th>
+        <th>Budget</th>
+        <th>Min/Max corridori</th>
         <th>Stato</th>
         <th></th>
       </tr>
@@ -29,9 +45,13 @@
       {% for s in seasons %}
       <tr>
         <td class="font-medium">{{ s.year }}</td>
+        <td class="text-sm">{{ s.total_budget or 500 }} FM</td>
+        <td class="text-sm">{{ s.min_runners or 9 }} / {{ s.max_runners or 30 }}</td>
         <td>{% if s.active %}<span class="badge badge-primary badge-sm">Attiva</span>{% endif %}</td>
         <td>
-          <div class="flex gap-2">
+          <div class="flex gap-2 flex-wrap items-center">
+            <button onclick="document.getElementById('edit-season-{{ s.id }}').showModal()"
+                    class="btn btn-xs btn-outline">Modifica</button>
             {% if not s.active %}
             <form method="post" action="/admin/seasons/{{ s.id }}/activate">
               <button type="submit" class="btn btn-xs btn-outline">Attiva</button>
@@ -42,10 +62,39 @@
               <button type="submit" class="btn btn-xs btn-outline btn-error">Elimina</button>
             </form>
           </div>
+
+          <dialog id="edit-season-{{ s.id }}" class="modal">
+            <div class="modal-box max-w-sm">
+              <h3 class="font-bold text-lg mb-4">Modifica stagione {{ s.year }}</h3>
+              <form method="post" action="/admin/seasons/{{ s.id }}/edit" class="grid grid-cols-2 gap-3">
+                <label class="form-control col-span-2">
+                  <div class="label"><span class="label-text">Budget totale (fantamilioni)</span></div>
+                  <input name="total_budget" type="number" value="{{ s.total_budget or 500 }}" min="1"
+                         required class="input input-bordered input-sm">
+                </label>
+                <label class="form-control">
+                  <div class="label"><span class="label-text">Min corridori</span></div>
+                  <input name="min_runners" type="number" value="{{ s.min_runners or 9 }}" min="1"
+                         required class="input input-bordered input-sm">
+                </label>
+                <label class="form-control">
+                  <div class="label"><span class="label-text">Max corridori</span></div>
+                  <input name="max_runners" type="number" value="{{ s.max_runners or 30 }}" min="1"
+                         required class="input input-bordered input-sm">
+                </label>
+                <div class="col-span-2 flex gap-2">
+                  <button type="submit" class="btn btn-primary btn-sm">Salva</button>
+                  <button type="button" onclick="this.closest('dialog').close()"
+                          class="btn btn-ghost btn-sm">Annulla</button>
+                </div>
+              </form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+          </dialog>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="3" class="text-center text-base-content/40 italic py-6">Nessuna stagione.</td></tr>
+      <tr><td colspan="5" class="text-center text-base-content/40 italic py-6">Nessuna stagione.</td></tr>
       {% endfor %}
     </tbody>
   </table>

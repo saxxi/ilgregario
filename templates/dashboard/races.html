@@ -16,12 +16,12 @@
 
   <div class="flex items-center gap-6">
     <div class="flex flex-col items-end">
-      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Gare Concluse</span>
+      <span class="text-[12px] uppercase font-bold text-base-content/40 tracking-widest">Gare Concluse</span>
       <span class="text-2xl font-black italic">{{ races | selectattr("is_completed") | list | length }}</span>
     </div>
     <div class="divider divider-horizontal mx-0"></div>
     <div class="flex flex-col items-end">
-      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Prossimi Eventi</span>
+      <span class="text-[12px] uppercase font-bold text-base-content/40 tracking-widest">Prossimi Eventi</span>
       <span class="text-2xl font-black italic text-primary">{{ races | rejectattr("is_completed") | list | length
         }}</span>
     </div>
@@ -32,7 +32,7 @@
 <div class="bg-base-100 rounded-3xl border border-base-200 shadow-sm overflow-hidden mb-10">
   <table class="table table-lg">
     <thead class="bg-base-50/50">
-      <tr class="text-[11px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
+      <tr class="text-[12px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
         <th class="p-6">DATA</th>
         <th>EVENTO</th>
         <th class="hidden sm:table-cell">CATEGORIA</th>
@@ -43,14 +43,14 @@
     <tbody>
       {% for race in races %}
       <tr class="group hover:bg-primary/[0.02] border-b border-base-50 transition-colors cursor-pointer
-        {% if not race.is_completed %}opacity-60 hover:opacity-100{% endif %}"
+        {% if not race.is_completed %}opacity-80 hover:opacity-100{% endif %}"
         onclick="location.href='/races/{{ race.id }}'">
 
         <td class="p-6 whitespace-nowrap">
           <div class="flex flex-col">
             <span class="font-black italic text-lg tracking-tighter text-base-content/70">{{ race.date.split('-')[-1] if
               '-' in race.date else race.date }}</span>
-            <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">{{ race.date }}</span>
+            <span class="text-[12px] font-bold text-base-content/45 uppercase tracking-widest">{{ race.date }}</span>
           </div>
         </td>
 
@@ -60,11 +60,11 @@
               class="font-black text-xl leading-none uppercase italic group-hover:text-primary transition-colors tracking-tight">{{
               race.name }}</span>
             {% if race.race_type == "stage_race" %}
-            <span class="text-[11px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">{{ race.num_stages
+            <span class="text-[12px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">{{ race.num_stages
               }}
               TAPPE</span>
             {% else %}
-            <span class="text-[11px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">GARA IN LINEA</span>
+            <span class="text-[12px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">GARA IN LINEA</span>
             {% endif %}
           </div>
         </td>
@@ -73,10 +73,10 @@
           <div class="flex gap-2">
             {% if race.race_type == "one_day" %}
             <span
-              class="badge badge-sm font-bold bg-slate-100 border-none text-slate-500 uppercase text-[11px] px-2">One-Day</span>
+              class="badge badge-sm font-bold bg-slate-100 border-none text-slate-500 uppercase text-[12px] px-2">One-Day</span>
             {% else %}
             <span
-              class="badge badge-sm font-bold bg-primary/10 border-none text-primary uppercase text-[11px] px-2">Tour</span>
+              class="badge badge-sm font-bold bg-primary/10 border-none text-primary uppercase text-[12px] px-2">Tour</span>
             {% endif %}
           </div>
         </td>
@@ -85,13 +85,13 @@
           <div class="flex gap-3 justify-end items-center">
             {% if race.difficulty %}
             <div class="flex flex-col items-end">
-              <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">Diff</span>
+              <span class="text-[12px] font-bold text-base-content/45 uppercase tracking-widest">Diff</span>
               <span class="text-xs font-black italic">D{{ race.difficulty }}</span>
             </div>
             {% endif %}
             {% if race.prestige %}
             <div class="flex flex-col items-end">
-              <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">Pres</span>
+              <span class="text-[12px] font-bold text-base-content/45 uppercase tracking-widest">Pres</span>
               <span class="text-xs font-black italic text-primary">P{{ race.prestige }}</span>
             </div>
             {% endif %}

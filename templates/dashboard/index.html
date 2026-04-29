@@ -16,7 +16,7 @@
 
   <div class="flex items-center gap-4">
     <div class="flex flex-col items-end">
-      <span class="text-[11px] uppercase font-bold text-base-content/50 tracking-widest">Gare</span>
+      <span class="text-[12px] uppercase font-bold text-base-content/50 tracking-widest">Gare</span>
       <div class="flex items-center gap-2">
         <span class="text-2xl font-black">{{ races_done }}</span>
         <progress class="progress progress-primary w-24 h-2" value="{{ races_done }}"
@@ -26,8 +26,12 @@
     </div>
     <div class="divider divider-horizontal mx-0 hidden sm:flex"></div>
     <div class="hidden sm:flex flex-col items-end">
-      <span class="text-[11px] uppercase font-bold text-base-content/50 tracking-widest">Leader</span>
-      <span class="text-xl font-black text-primary">{{ leaderboard[0].username if leaderboard else "—" }}</span>
+      <span class="text-[12px] uppercase font-bold text-base-content/50 tracking-widest">Leader</span>
+      {% if leaderboard %}
+      <a href="/users/{{ leaderboard[0].username }}" class="text-xl font-black text-primary hover:underline">{{ leaderboard[0].username }}</a>
+      {% else %}
+      <span class="text-xl font-black text-primary">—</span>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -62,16 +66,17 @@
 <div class="mb-10 bg-base-100 rounded-2xl border border-base-200 overflow-hidden shadow-sm">
   <div id="timeline-scroll" class="flex items-center overflow-x-auto py-6 px-8 gap-0 no-scrollbar">
     {% for race in season_progress.timeline %}
-    <div {% if race.status=='next' %}id="timeline-current" {% endif %} class="flex flex-col items-center shrink-0 group"
-      style="min-width:64px">
-      <div class="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-black border-2 transition-all duration-300
+    <a href="/races/{{ race.id }}" title="{{ race.name }}"
+      {% if race.status=='next' %}id="timeline-current" {% endif %}
+      class="flex flex-col items-center shrink-0 group" style="min-width:64px">
+      <div class="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-black border-2 transition-all duration-300 group-hover:scale-110
         {% if race.status == 'done' %}bg-primary border-primary text-primary-content
         {% elif race.status == 'next' %}bg-base-100 border-primary text-primary ring-2 ring-primary/10 scale-110
         {% else %}bg-base-200 border-base-300 text-base-content/50{% endif %}">
         {% if race.status == 'done' %}✓
         {% else %}{{ race.short[:2] }}{% endif %}
       </div>
-      <span class="text-[11px] mt-2 font-bold uppercase tracking-tighter
+      <span class="text-[12px] mt-2 font-bold uppercase tracking-tighter
         {% if race.status == 'done' %}text-primary/70
         {% elif race.status == 'next' %}text-primary
         {% else %}text-base-content/50{% endif %}">
@@ -80,7 +85,7 @@
       {% if race.status == 'next' %}
       <div class="h-1 w-1 rounded-full bg-primary mt-1 animate-pulse"></div>
       {% endif %}
-    </div>
+    </a>
     {% if not loop.last %}
     <div class="flex-1 h-[2px] mx-1 min-w-[8px]
       {% if loop.index <= season_progress.races_done %}bg-primary/30{% else %}bg-base-200{% endif %}"></div>
@@ -92,7 +97,7 @@
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-base-200 flex items-center justify-center text-xl">📅</div>
       <div>
-        <p class="text-[11px] uppercase font-bold text-base-content/50 tracking-widest">Fine Stagione</p>
+        <p class="text-[12px] uppercase font-bold text-base-content/50 tracking-widest">Fine Stagione</p>
         <p class="font-bold text-sm">{{ season_progress.season_end_str }}
           <span class="text-primary font-normal text-xs ml-1">({{ season_progress.days_to_end }}g)</span>
         </p>
@@ -103,17 +108,17 @@
     <div class="flex items-center gap-3 md:border-l md:border-base-200 md:pl-6">
       <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">🚀</div>
       <div>
-        <p class="text-[11px] uppercase font-bold text-base-content/50 tracking-widest">Prossima Gara</p>
+        <p class="text-[12px] uppercase font-bold text-base-content/50 tracking-widest">Prossima Gara</p>
         <p class="font-bold text-sm text-primary truncate max-w-[180px]">{{ season_progress.next_race_name }}</p>
       </div>
     </div>
     {% endif %}
 
     <div class="flex flex-col items-end justify-center ml-auto">
-      <p class="text-[11px] uppercase font-bold text-base-content/50 tracking-widest mb-0.5">Potenziale rimonta</p>
+      <p class="text-[12px] uppercase font-bold text-base-content/50 tracking-widest mb-0.5">Potenziale rimonta</p>
       <div class="flex items-center gap-2">
         <span class="text-xl font-black text-primary">~{{ season_progress.max_pts_remaining }}</span>
-        <span class="text-[11px] font-bold text-base-content/50 uppercase">pt max</span>
+        <span class="text-[12px] font-bold text-base-content/50 uppercase">pt max</span>
       </div>
     </div>
   </div>
@@ -151,10 +156,10 @@
       </div>
       <div
         class="bg-white border border-slate-200 rounded-2xl p-4 w-full text-center shadow-sm group-hover:border-slate-300 transition-all duration-300">
-        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Argento</div>
+        <div class="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-1">Argento</div>
         <div class="font-bold text-sm truncate mb-2">{{ p2.username }}</div>
         <div class="text-3xl font-black text-slate-700">{{ p2.total_points }}</div>
-        <div class="text-[11px] font-bold text-slate-400 uppercase">Punti Totali</div>
+        <div class="text-[12px] font-bold text-slate-400 uppercase">Punti Totali</div>
       </div>
     </a>
     {% endif %}
@@ -176,10 +181,10 @@
       </div>
       <div
         class="bg-gradient-to-b from-yellow-400 to-yellow-500 rounded-3xl p-6 w-full text-center shadow-md group-hover:shadow-lg transition-all duration-300">
-        <div class="text-[11px] font-bold text-yellow-900/60 uppercase tracking-widest mb-1">Leader Oro</div>
+        <div class="text-[12px] font-bold text-yellow-900/60 uppercase tracking-widest mb-1">Leader Oro</div>
         <div class="font-black text-lg text-yellow-950 truncate mb-2">{{ p1.username }}</div>
         <div class="text-5xl font-black text-yellow-950 mb-1">{{ p1.total_points }}</div>
-        <div class="text-[11px] font-bold text-yellow-900/60 uppercase">Punti Totali</div>
+        <div class="text-[12px] font-bold text-yellow-900/60 uppercase">Punti Totali</div>
         {% if p1.streak == "hot" %}<div
           class="mt-3 badge badge-sm bg-yellow-950/20 text-yellow-950 border-none font-bold">🔥 ON FIRE</div>{% endif %}
       </div>
@@ -202,10 +207,10 @@
       </div>
       <div
         class="bg-white border border-amber-100 rounded-2xl p-4 w-full text-center shadow-sm group-hover:border-amber-200 transition-all duration-300">
-        <div class="text-[11px] font-bold text-amber-500/60 uppercase tracking-widest mb-1">Bronzo</div>
+        <div class="text-[12px] font-bold text-amber-500/60 uppercase tracking-widest mb-1">Bronzo</div>
         <div class="font-bold text-sm truncate mb-2">{{ p3.username }}</div>
         <div class="text-3xl font-black text-amber-800">{{ p3.total_points }}</div>
-        <div class="text-[11px] font-bold text-amber-500/60 uppercase">Punti Totali</div>
+        <div class="text-[12px] font-bold text-amber-500/60 uppercase">Punti Totali</div>
       </div>
     </a>
     {% endif %}
@@ -268,10 +273,10 @@
                   }}</div>
                 <div class="flex items-center gap-1 mt-1">
                   {% if entry.streak == "hot" %}
-                  <span class="badge badge-xs bg-orange-500 border-none text-[11px] font-bold text-white px-1">IN FORMA
+                  <span class="badge badge-xs bg-orange-500 border-none text-[12px] font-bold text-white px-1">IN FORMA
                     🔥</span>
                   {% elif entry.streak == "cold" %}
-                  <span class="badge badge-xs bg-blue-400 border-none text-[11px] font-bold text-white px-1">A SECCO
+                  <span class="badge badge-xs bg-blue-400 border-none text-[12px] font-bold text-white px-1">A SECCO
                     ❄️</span>
                   {% endif %}
                 </div>
@@ -282,8 +287,8 @@
           <td class="hidden sm:table-cell">
             <div class="w-full max-w-[120px]">
               <div class="flex justify-between mb-1">
-                <span class="text-[11px] font-bold text-base-content/50 uppercase">Potenziale</span>
-                <span class="text-[11px] font-bold text-base-content/50">{{ entry.pct }}%</span>
+                <span class="text-[12px] font-bold text-base-content/50 uppercase">Potenziale</span>
+                <span class="text-[12px] font-bold text-base-content/50">{{ entry.pct }}%</span>
               </div>
               <div class="h-1.5 w-full bg-base-200 rounded-full overflow-hidden">
                 <div class="h-full bg-primary transition-all duration-1000" style="width: {{ entry.pct }}%"></div>
@@ -294,7 +299,7 @@
           <td class="text-right">
             <div class="font-black text-2xl tracking-tighter {% if entry.rank == 1 %}text-primary{% endif %}">{{
               entry.total_points }}</div>
-            {% if entry.gap < 0 %} <div class="text-[11px] font-bold text-error/60 uppercase tracking-tighter">{{
+            {% if entry.gap < 0 %} <div class="text-[12px] font-bold text-error/60 uppercase tracking-tighter">{{
               entry.gap }} pt
   </div>
   {% endif %}
@@ -350,7 +355,7 @@
     <div class="flex -space-x-2">
       {% for entry in leaderboard[:5] %}
       <div
-        class="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700 flex items-center justify-center font-black text-[11px]">
+        class="inline-block h-8 w-8 rounded-full ring-2 ring-slate-900 bg-slate-700 flex items-center justify-center font-black text-[12px]">
         {{ entry.initials }}</div>
       {% endfor %}
     </div>
@@ -362,18 +367,18 @@
       class="rounded-2xl p-4 border transition-all duration-300
       {% if c.can_catch %}border-yellow-400/20 bg-yellow-400/5 hover:bg-yellow-400/10{% else %}border-slate-800 bg-slate-800/50 opacity-50{% endif %}">
       <div class="flex items-center justify-between mb-3">
-        <span
-          class="font-black text-sm tracking-tight {% if c.can_catch %}text-white{% else %}text-slate-500{% endif %}">{{
-          c.username }}</span>
+        <a href="/users/{{ c.username }}"
+          class="font-black text-sm tracking-tight hover:underline {% if c.can_catch %}text-white{% else %}text-slate-500{% endif %}">{{
+          c.username }}</a>
         {% if c.can_catch %}
-        <span class="text-yellow-400 text-[11px] font-black italic">✓ SI</span>
+        <span class="text-yellow-400 text-[12px] font-black italic">✓ SI</span>
         {% else %}
-        <span class="text-slate-600 text-[11px] font-black italic">✗ NO</span>
+        <span class="text-slate-600 text-[12px] font-black italic">✗ NO</span>
         {% endif %}
       </div>
       <div
         class="text-2xl font-black tracking-tighter {% if c.can_catch %}text-yellow-400{% else %}text-slate-600{% endif %}">
-        {{ c.gap }} <span class="text-[11px] uppercase font-bold opacity-50">pt gap</span></div>
+        {{ c.gap }} <span class="text-[12px] uppercase font-bold opacity-50">pt gap</span></div>
     </div>
     {% endfor %}
   </div>
@@ -385,7 +390,7 @@
   <div class="flex items-center justify-between mb-6">
     <h3 class="text-2xl font-black uppercase tracking-tight">Punti <span class="text-primary italic">Per Gara</span>
     </h3>
-    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Vista Matrice</p>
+    <p class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Vista Matrice</p>
   </div>
 
   <div class="bg-base-100 rounded-3xl border border-base-200 shadow-sm overflow-x-auto p-2">
@@ -395,7 +400,7 @@
           <th class="p-4 font-bold text-xs uppercase text-base-content/50">SQUADRA</th>
           {% for label in race_labels %}
           <th
-            class="text-center p-4 font-bold text-[11px] uppercase text-base-content/50 tracking-tighter min-w-[50px]">
+            class="text-center p-4 font-bold text-[12px] uppercase text-base-content/50 tracking-tighter min-w-[50px]">
             {{ label }}</th>
           {% endfor %}
           <th class="text-right p-4 font-bold text-xs uppercase text-primary">TOTALE</th>
@@ -444,7 +449,7 @@
     <div class="flex items-center justify-between mb-6">
       <h3 class="text-2xl font-black uppercase tracking-tight">Ultime <span class="text-primary italic">Gare</span></h3>
       <a href="/races"
-        class="btn btn-ghost btn-xs font-bold text-primary hover:bg-primary/10 tracking-widest uppercase text-[11px]">VEDI
+        class="btn btn-ghost btn-xs font-bold text-primary hover:bg-primary/10 tracking-widest uppercase text-[12px]">VEDI
         TUTTE →</a>
     </div>
 
@@ -456,10 +461,10 @@
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span
-                class="badge badge-sm font-bold bg-base-200 border-none text-[11px] uppercase tracking-widest text-base-content/50">
+                class="badge badge-sm font-bold bg-base-200 border-none text-[12px] uppercase tracking-widest text-base-content/50">
                 {% if item.race.race_type == "one_day" %}Classica{% else %}Giro{% endif %}
               </span>
-              <span class="text-[11px] font-bold text-base-content/50">{{ item.race.date }}</span>
+              <span class="text-[12px] font-bold text-base-content/50">{{ item.race.date }}</span>
             </div>
             {% if item.race.pcs_slug %}
             <a href="/races/{{ item.race.id }}"
@@ -478,17 +483,17 @@
         {% set winner = item.scores[0] %}
         <div class="bg-primary/5 rounded-2xl p-4 mb-4 border border-primary/10">
           <div class="flex items-center gap-2 mb-3">
-            <div class="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-[11px]">🏆</div>
-            <span class="text-[11px] font-bold text-primary uppercase tracking-widest">Top di Giornata</span>
+            <div class="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-[12px]">🏆</div>
+            <span class="text-[12px] font-bold text-primary uppercase tracking-widest">Top di Giornata</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="font-bold text-lg tracking-tight">{{ winner.username }}</span>
             <span class="font-black text-xl text-primary">+{{ winner.points }} <span
-                class="text-[11px] opacity-40">PT</span></span>
+                class="text-[12px] opacity-40">PT</span></span>
           </div>
           <div class="mt-2 pt-2 border-t border-primary/10 space-y-1">
             {% for res in winner.results[:2] %}
-            <div class="flex justify-between items-center text-[11px]">
+            <div class="flex justify-between items-center text-[12px]">
               <span class="font-bold text-base-content/50 uppercase tracking-tighter">{{ res.athlete }}</span>
               <span class="font-bold text-primary/70">{{ res.points }} pt</span>
             </div>
@@ -519,7 +524,7 @@
     <div>
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-xl font-black uppercase tracking-tight">Top <span class="text-primary italic">Atleti</span></h3>
-        <span class="text-[11px] font-bold text-base-content/50 uppercase">Punti Stagione</span>
+        <span class="text-[12px] font-bold text-base-content/50 uppercase">Punti Stagione</span>
       </div>
       <div class="bg-base-100 rounded-3xl border border-base-200 shadow-sm overflow-hidden divide-y divide-base-100">
         {% for ath in top_athletes %}
@@ -532,11 +537,11 @@
             <a href="/athletes/{{ ath.id }}"
               class="font-bold text-sm hover:text-primary transition-colors block truncate uppercase tracking-tighter">{{
               ath.flag }} {{ ath.full_name }}</a>
-            <div class="text-[11px] font-bold text-base-content/50 uppercase mt-0.5">{{ ath.team }}</div>
+            <div class="text-[12px] font-bold text-base-content/50 uppercase mt-0.5">{{ ath.team }}</div>
           </div>
           <div class="text-right">
             <div class="font-black text-lg leading-none tracking-tighter italic">{{ ath.total_points }}</div>
-            <div class="text-[11px] font-bold text-primary uppercase mt-0.5">PT</div>
+            <div class="text-[12px] font-bold text-primary uppercase mt-0.5">PT</div>
           </div>
         </div>
         {% endfor %}
@@ -554,8 +559,8 @@
         <div class="relative z-10">
           <div class="flex items-center gap-2 mb-4">
             <span
-              class="badge badge-ghost badge-sm font-bold border-none bg-primary-content/20 text-primary-content uppercase text-[11px]">DOMANI</span>
-            <span class="text-[11px] font-bold uppercase tracking-widest opacity-60">{{ next_race.date }}</span>
+              class="badge badge-ghost badge-sm font-bold border-none bg-primary-content/20 text-primary-content uppercase text-[12px]">DOMANI</span>
+            <span class="text-[12px] font-bold uppercase tracking-widest opacity-80">{{ next_race.date }}</span>
           </div>
 
           <a href="/races/{{ next_race.id }}"
@@ -567,12 +572,12 @@
           </p>
 
           <div class="space-y-3 mb-6">
-            <p class="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 mb-2">Favoriti in rosa</p>
+            <p class="text-[12px] font-black uppercase tracking-[0.2em] opacity-40 mb-2">Favoriti in rosa</p>
             {% for c in next_race.contenders[:4] %}
             <div class="flex items-center justify-between">
               <span class="text-sm font-bold italic tracking-tighter uppercase">{{ c.flag }} {{ c.athlete }}</span>
               <a href="/users/{{ c.username }}"
-                class="text-[11px] font-bold bg-primary-content/10 px-2 py-0.5 rounded-full opacity-60 uppercase">{{
+                class="text-[12px] font-bold bg-primary-content/10 px-2 py-0.5 rounded-full opacity-80 uppercase">{{
                 c.username }}</a>
             </div>
             {% endfor %}

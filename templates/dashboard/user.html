@@ -5,7 +5,7 @@
 {# ── Navigation & Actions ── #}
 <div class="flex items-center justify-between mb-8">
   <a href="/dashboard"
-    class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[11px]">
+    class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[12px]">
     ← Torna alla classifica
   </a>
   {% if session is defined and session and session.username == user.username %}
@@ -20,7 +20,7 @@
 
   {# Background rank decoration #}
   <div
-    class="absolute -right-8 -bottom-12 font-black text-[180px] italic text-base-content/[0.02] select-none pointer-events-none">
+    class="absolute -right-0 -bottom-12 font-black text-[120px] italic text-base-content/[0.02] select-none pointer-events-none">
     #{{ user.rank }}
   </div>
 
@@ -38,32 +38,32 @@
         <h1 class="text-4xl font-black tracking-tighter italic uppercase leading-none">{{ user.username }}</h1>
         <div class="flex gap-2">
           {% if user.rank == 1 %}<span
-            class="badge badge-sm bg-yellow-400 border-none font-black text-yellow-950 uppercase italic text-[11px]">Leader</span>
+            class="badge badge-sm bg-yellow-400 border-none font-black text-yellow-950 uppercase italic text-[12px]">Leader</span>
           {% elif user.rank <= 3 %}<span
-            class="badge badge-sm bg-slate-100 border-none font-bold text-slate-500 uppercase text-[11px]">Podio</span>
+            class="badge badge-sm bg-slate-100 border-none font-bold text-slate-500 uppercase text-[12px]">Podio</span>
             {% endif %}
 
             {% if user.streak == "hot" %}
-            <span class="badge badge-sm bg-orange-500 border-none font-bold text-white uppercase text-[11px]">In Forma
+            <span class="badge badge-sm bg-orange-500 border-none font-bold text-white uppercase text-[12px]">In Forma
               🔥</span>
             {% elif user.streak == "cold" %}
-            <span class="badge badge-sm bg-blue-100 border-none font-bold text-blue-600 uppercase text-[11px]">A secco
+            <span class="badge badge-sm bg-blue-100 border-none font-bold text-blue-600 uppercase text-[12px]">A secco
               ❄️</span>
             {% endif %}
         </div>
       </div>
 
       <div class="flex items-center gap-4">
-        {% if user.gap < 0 %} <p class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest">{{
+        {% if user.gap < 0 %} <p class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest">{{
           user.gap }} pt <span class="font-medium">dal primo posto</span></p>
           {% else %}
-          <p class="text-[11px] font-black text-yellow-600 uppercase tracking-widest">In vetta alla classifica 👑</p>
+          <p class="text-[12px] font-black text-yellow-600 uppercase tracking-widest">In vetta alla classifica 👑</p>
           {% endif %}
       </div>
     </div>
 
     <div class="text-right shrink-0">
-      <div class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest mb-1">Punteggio Totale</div>
+      <div class="text-[12px] font-bold text-base-content/50 uppercase tracking-widest mb-1">Punteggio Totale</div>
       <div class="text-6xl font-black tracking-tighter italic
         {% if user.rank == 1 %}text-primary{% endif %}">{{ user.total_points }}</div>
     </div>
@@ -72,20 +72,20 @@
   {# Stat Cards Grid #}
   <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 pt-8 border-t border-base-50">
     <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Posizione</div>
+      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Posizione</div>
       <div class="text-2xl font-black italic">{{ user.rank }}°</div>
     </div>
     <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Gare in Testa</div>
+      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Gare in Testa</div>
       <div class="text-2xl font-black italic">{{ user.races_led }}</div>
     </div>
     <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Record Gara</div>
+      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Record Gara</div>
       <div class="text-2xl font-black italic text-success">+{{ user.best_race_pts }}</div>
-      <div class="text-[11px] font-medium text-base-content/50 uppercase truncate">{{ user.best_race_name }}</div>
+      <div class="text-[12px] font-medium text-base-content/50 uppercase truncate">{{ user.best_race_name }}</div>
     </div>
     <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
-      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Atleti Rosa</div>
+      <div class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Atleti Rosa</div>
       <div class="text-2xl font-black italic">{{ user.athletes|length }}</div>
     </div>
   </div>
@@ -100,7 +100,7 @@
     <div class="flex items-center justify-between mb-6 px-2">
       <h3 class="text-xl font-black italic uppercase tracking-tight">Evoluzione <span
           class="text-primary">Ranking</span></h3>
-      <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest">Live Tracker</span>
+      <span class="text-[12px] font-bold text-base-content/50 uppercase tracking-widest">Live Tracker</span>
     </div>
     <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm p-8 overflow-scroll">
       <svg viewBox="0 0 500 120" class="w-full" style="max-height:160px">
@@ -140,7 +140,7 @@
     <div class="flex items-center justify-between mb-6 px-2">
       <h3 class="text-xl font-black italic uppercase tracking-tight">Punti per <span class="text-primary">Gara</span>
       </h3>
-      <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest">Distribuzione</span>
+      <span class="text-[12px] font-bold text-base-content/50 uppercase tracking-widest">Distribuzione</span>
     </div>
     <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm p-8 overflow-scroll">
       <div class="flex items-end gap-3 h-32">
@@ -154,11 +154,11 @@
             style="height: {{ [bar_pct, 5]|max }}%">
             {% if pts > 0 %}
             <div
-              class="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+              class="absolute -top-4 left-1/2 -translate-x-1/2 text-[12px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
               +{{ pts }}</div>
             {% endif %}
           </div>
-          <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-tighter">{{
+          <span class="text-[12px] font-bold text-base-content/50 uppercase tracking-tighter">{{
             user.race_labels[loop.index0] }}</span>
         </div>
         {% endfor %}
@@ -173,8 +173,8 @@
   <div class="flex items-center justify-between mb-8 px-2">
     <h3 class="text-2xl font-black italic uppercase tracking-tight">La <span class="text-primary">Rosa</span></h3>
     <div class="flex items-center gap-2">
-      <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest">Media Lega:</span>
-      <span class="badge badge-sm font-bold bg-base-200 border-none text-[11px]">{{ user.league_avg }} pt</span>
+      <span class="text-[12px] font-bold text-base-content/50 uppercase tracking-widest">Media Lega:</span>
+      <span class="badge badge-sm font-bold bg-base-200 border-none text-[12px]">{{ user.league_avg }} pt</span>
     </div>
   </div>
 
@@ -184,7 +184,7 @@
       class="group bg-white border border-base-200 rounded-3xl p-6 shadow-sm hover:border-primary/20 transition-all duration-300 relative overflow-hidden">
       {% if ath.total_points == user.max_athlete_pts %}
       <div
-        class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 font-bold text-[11px] px-2 py-0.5 rounded-bl-lg">
+        class="absolute -top-1 -right-1 bg-yellow-400 text-yellow-900 font-bold text-[12px] px-2 py-0.5 rounded-bl-lg">
         MVP</div>
       {% endif %}
 
@@ -193,7 +193,7 @@
           <a href="/athletes/{{ ath.id }}"
             class="font-black text-lg leading-tight hover:text-primary transition-colors block truncate uppercase italic tracking-tight">{{
             ath.full_name }}</a>
-          <div class="text-[11px] font-bold text-base-content/50 uppercase mt-1 tracking-tighter">{{ ath.flag }} {{
+          <div class="text-[12px] font-bold text-base-content/50 uppercase mt-1 tracking-tighter">{{ ath.flag }} {{
             ath.team }}</div>
         </div>
         <div class="text-right shrink-0 ml-4">
@@ -201,17 +201,17 @@
             class="text-4xl font-black tracking-tighter italic {% if ath.total_points == user.max_athlete_pts %}text-yellow-600{% else %}text-primary{% endif %}">
             {{ ath.total_points }}
           </div>
-          <div class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">PUNTI</div>
+          <div class="text-[12px] font-bold text-base-content/45 uppercase tracking-widest">PUNTI</div>
         </div>
       </div>
 
       <div class="flex items-center gap-3 mb-6">
         {% if ath.vs_avg > 0 %}
         <span
-          class="badge badge-sm font-bold bg-success/5 text-success border-none text-[11px] uppercase tracking-tighter">+{{
+          class="badge badge-sm font-bold bg-success/5 text-success border-none text-[12px] uppercase tracking-tighter">+{{
           ath.vs_avg }} VS MEDIA</span>
         {% elif ath.vs_avg < 0 %} <span
-          class="badge badge-sm font-bold bg-error/5 text-error border-none text-[11px] uppercase tracking-tighter">{{
+          class="badge badge-sm font-bold bg-error/5 text-error border-none text-[12px] uppercase tracking-tighter">{{
           ath.vs_avg }} VS MEDIA</span>
           {% endif %}
       </div>
@@ -229,9 +229,9 @@
         {% endfor %}
       </div>
 
-      <div class="flex justify-between items-center text-[11px] font-bold text-base-content/45 uppercase italic">
+      <div class="flex justify-between items-center text-[12px] font-bold text-base-content/45 uppercase italic">
         <span>Tracker Stagione</span>
-        <span class="opacity-60">{{ ath.best }} BEST</span>
+        <span class="opacity-80">{{ ath.best }} BEST</span>
       </div>
     </div>
     {% endfor %}
@@ -242,13 +242,13 @@
 <div class="mb-16">
   <div class="flex items-center justify-between mb-8 px-2">
     <h3 class="text-2xl font-black italic uppercase tracking-tight">Storico <span class="text-primary">Gare</span></h3>
-    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Full Log</p>
+    <p class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Full Log</p>
   </div>
 
   <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm overflow-hidden">
     <table class="table table-lg">
       <thead class="bg-base-50/50">
-        <tr class="text-[11px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
+        <tr class="text-[12px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
           <th class="p-6">GARA</th>
           <th>CONTRIBUTO ATLETI</th>
           <th class="text-center">POS</th>
@@ -263,14 +263,14 @@
           {% if loop.first %}
           <td rowspan="{{ race.results|length + 1 }}" class="p-6 align-top border-r border-base-50 w-48 bg-base-50/30">
             <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
-            <div class="text-[11px] font-bold text-base-content/50 italic">{{ race.date }}</div>
+            <div class="text-[14px] font-bold text-base-content/50 italic">{{ race.date }}</div>
 
             <div class="mt-4">
               {% if race.weekly_rank == 1 %}
               <span
-                class="badge badge-sm font-bold bg-yellow-400 border-none text-yellow-950 px-2 py-0.5 italic text-[11px] uppercase">Vincitore</span>
+                class="badge badge-sm font-bold bg-yellow-400 border-none text-yellow-950 px-2 py-0.5 italic text-[12px] uppercase">Vincitore</span>
               {% else %}
-              <span class="text-[11px] font-bold text-base-content/40 uppercase tracking-tighter">{{ race.weekly_rank
+              <span class="text-[12px] font-bold text-base-content/40 uppercase tracking-tighter">{{ race.weekly_rank
                 }}°
                 in classifica</span>
               {% endif %}
@@ -281,12 +281,12 @@
           <td class="text-center">
             {% if res.position == 1 %}
             <span
-              class="badge badge-sm font-bold bg-yellow-400 border-none text-yellow-950 uppercase text-[11px] px-2 italic">1°</span>
+              class="badge badge-sm font-bold bg-yellow-400 border-none text-yellow-950 uppercase text-[12px] px-2 italic">1°</span>
             {% elif res.position <= 3 %} <span
-              class="badge badge-sm font-bold bg-slate-100 border-none text-slate-500 uppercase text-[11px] px-2 italic">
+              class="badge badge-sm font-bold bg-slate-100 border-none text-slate-500 uppercase text-[12px] px-2 italic">
               {{ res.position }}°</span>
               {% else %}
-              <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">{{ res.position
+              <span class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">{{ res.position
                 }}°</span>
               {% endif %}
           </td>
@@ -297,14 +297,14 @@
         </tr>
         {% endfor %}
         <tr class="bg-primary/[0.02] border-b border-base-100">
-          <td class="text-right text-[11px] font-bold text-primary uppercase pr-4 italic" colspan="2">Totale Gara</td>
+          <td class="text-right text-[12px] font-bold text-primary uppercase pr-4 italic" colspan="2">Totale Gara</td>
           <td class="text-right font-black italic text-lg p-4 pr-6 tracking-tighter text-primary">{{ race.total }}</td>
         </tr>
         {% else %}
         <tr class="hover:bg-base-50 border-b border-base-200">
           <td class="p-6 w-48 bg-base-50/30">
             <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
-            <div class="text-[11px] font-bold text-base-content/50 italic">{{ race.date }}</div>
+            <div class="text-[14px] font-bold text-base-content/50 italic">{{ race.date }}</div>
           </td>
           <td colspan="3"
             class="p-6 text-xs text-base-content/45 font-bold uppercase text-center tracking-widest italic">Nessun punto
@@ -328,7 +328,7 @@
 <div class="mb-16">
   <div class="flex items-center justify-between mb-8 px-2">
     <h3 class="text-2xl font-black italic uppercase tracking-tight">Testa a <span class="text-primary">Testa</span></h3>
-    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Rivalità</p>
+    <p class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Rivalità</p>
   </div>
 
   <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -345,11 +345,11 @@
           class="font-black text-base uppercase italic tracking-tight group-hover:text-primary transition-colors truncate">
           {{ opp.username }}</div>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-[11px] font-bold text-success">{{ opp.wins }}V</span>
+          <span class="text-[12px] font-bold text-success">{{ opp.wins }}V</span>
           <div class="w-1 h-1 rounded-full bg-base-200"></div>
-          {% if opp.draws %}<span class="text-[11px] font-bold text-base-content/50">{{ opp.draws }}P</span>
+          {% if opp.draws %}<span class="text-[12px] font-bold text-base-content/50">{{ opp.draws }}P</span>
           <div class="w-1 h-1 rounded-full bg-base-200"></div>{% endif %}
-          <span class="text-[11px] font-bold text-error">{{ opp.losses }}S</span>
+          <span class="text-[12px] font-bold text-error">{{ opp.losses }}S</span>
         </div>
       </div>
       <div class="text-right shrink-0">
@@ -358,7 +358,7 @@
           {% if opp.point_diff > 0 %}text-success{% elif opp.point_diff < 0 %}text-error{% else %}text-base-content/40{% endif %}">
           {% if opp.point_diff > 0 %}+{% endif %}{{ opp.point_diff }}
         </div>
-        <div class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">DIFF</div>
+        <div class="text-[12px] font-bold text-base-content/45 uppercase tracking-widest">DIFF</div>
       </div>
     </a>
     {% endfor %}

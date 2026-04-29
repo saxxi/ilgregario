@@ -16,12 +16,12 @@
 
   <div class="flex items-center gap-4">
     <div class="flex flex-col items-end">
-      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Team Attivi</span>
+      <span class="text-[12px] uppercase font-bold text-base-content/40 tracking-widest">Team Attivi</span>
       <span class="text-2xl font-black italic">{{ users|length }}</span>
     </div>
     <div class="divider divider-horizontal mx-0"></div>
     <a href="/dashboard"
-      class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[11px]">←
+      class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[12px]">←
       Classifica</a>
   </div>
 </div>
@@ -69,10 +69,10 @@
         <div class="flex items-center gap-2 mt-1">
           <span class="text-3xl font-black tracking-tighter {% if u.rank == 1 %}text-primary{% endif %}">{{
             u.total_points }}</span>
-          <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Punti</span>
+          <span class="text-[14px] font-bold text-base-content/50 uppercase tracking-widest italic">Punti</span>
 
           {% if u.streak == "hot" %}
-          <span class="badge badge-xs bg-orange-500 border-none text-[11px] font-bold text-white px-1 ml-auto">HOT
+          <span class="badge badge-xs bg-orange-500 border-none text-[12px] font-bold text-white px-1 ml-auto">HOT
             🔥</span>
           {% endif %}
         </div>
@@ -82,25 +82,25 @@
     {# Roster Preview #}
     <div class="bg-base-50 rounded-2xl p-4 border border-base-100">
       <div class="flex justify-between items-center mb-3">
-        <p class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest">Rosa Attiva</p>
-        <span class="text-[11px] font-bold text-base-content/45 uppercase">{{ u.athletes|length }} Atleti</span>
+        <p class="text-[12px] font-bold text-base-content/40 uppercase tracking-widest">Rosa Attiva</p>
+        <span class="text-[12px] font-bold text-base-content/45 uppercase">{{ u.athletes|length }} Atleti</span>
       </div>
       <div class="space-y-2.5">
         {% for ath in u.athletes[:5] %}
         <div class="flex items-center justify-between gap-2 border-b border-base-200/50 pb-2 last:border-0 last:pb-0">
           <div class="min-w-0 flex-1">
-            <div class="text-[11px] font-bold text-base-content/70 truncate leading-tight uppercase tracking-tight">{{
+            <div class="text-[12px] font-bold text-base-content/70 truncate leading-tight uppercase tracking-tight">{{
               ath.flag }} {{ ath.full_name }}</div>
           </div>
           {% if ath.total_points > 0 %}
-          <span class="text-[11px] font-black text-primary italic">+{{ ath.total_points }}</span>
+          <span class="text-[12px] font-black text-primary italic">+{{ ath.total_points }}</span>
           {% else %}
-          <span class="text-[11px] font-bold text-base-content/10">—</span>
+          <span class="text-[12px] font-bold text-base-content/10">—</span>
           {% endif %}
         </div>
         {% endfor %}
         {% if u.athletes|length > 5 %}
-        <div class="text-[11px] font-bold text-center text-base-content/45 uppercase italic pt-1">+ altri {{
+        <div class="text-[12px] font-bold text-center text-base-content/45 uppercase italic pt-1">+ altri {{
           u.athletes|length - 5 }}</div>
         {% endif %}
       </div>
@@ -109,13 +109,13 @@
     {# Action Footer #}
     <div class="mt-6 flex justify-between items-center">
       <a href="/users/{{ u.username }}"
-        class="text-[11px] font-bold text-base-content/40 hover:text-primary transition-colors uppercase tracking-widest italic flex items-center gap-1">
+        class="text-[12px] font-bold text-base-content/40 hover:text-primary transition-colors uppercase tracking-widest italic flex items-center gap-1">
         Dettaglio Squadra
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M9 5l7 7-7 7" />
         </svg>
       </a>
-      {% if u.gap < 0 %} <span class="text-[11px] font-bold text-error/40 italic tracking-tighter uppercase">{{ u.gap }}
+      {% if u.gap < 0 %} <span class="text-[12px] font-bold text-error/40 italic tracking-tighter uppercase">{{ u.gap }}
         pt dal leader</span>
         {% endif %}
     </div>
