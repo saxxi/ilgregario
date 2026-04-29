@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{{ athlete.full_name }} — IlGregario{% endblock %}
+{% block content %}
+
+{# ── Navigation & Actions ── #}
+<div class="flex items-center justify-between mb-8">
+  <a href="/dashboard"
+    class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[11px]">
+    ← Torna alla classifica
+  </a>
+</div>
+
+{# ── Athlete Hero Header ── #}
+<div class="relative overflow-hidden bg-white border border-base-200 rounded-3xl shadow-md p-8 mb-10">
+
+  {# Background nationality decoration #}
+  {% if athlete.nationality %}
+  <div
+    class="absolute -right-8 -bottom-12 font-black text-[120px] italic text-base-content/[0.02] select-none pointer-events-none uppercase">
+    {{ athlete.nationality[:3] }}
+  </div>
+  {% endif %}
+
+  <div class="flex items-start gap-8 flex-wrap relative z-10">
+    <div
+      class="w-24 h-24 rounded-2xl bg-base-50 flex items-center justify-center text-4xl shrink-0 shadow-inner border border-base-100">
+      {{ athlete.flag or "🚴" }}
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-4 flex-wrap mb-2">
+        <h1 class="text-4xl font-black tracking-tighter italic uppercase leading-none">{{ athlete.full_name }}</h1>
+        <div class="flex gap-2">
+          {% if athlete.status == 'injured' %}
+          <span
+            class="badge badge-sm bg-error border-none font-bold text-white uppercase text-[11px] italic">Infortunato</span>
+          {% elif athlete.status == 'paused' %}
+          <span class="badge badge-sm bg-warning border-none font-bold text-yellow-950 uppercase text-[11px] italic">In
+            Pausa</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="text-[11px] font-black text-primary uppercase tracking-[0.2em] italic">{{ athlete.team }}</div>
+        {% if athlete.nationality %}
+        <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest">{{ athlete.nationality }}
+        </div>
+        {% endif %}
+      </div>
+
+      {# External Links #}
+      {% if athlete.pcs_slug %}
+      <div class="mt-4">
+        <a href="https://www.procyclingstats.com/rider/{{ athlete.pcs_slug }}" target="_blank" rel="noopener"
+          class="btn btn-xs btn-outline border-base-200 font-bold italic text-[11px] hover:bg-primary hover:border-primary uppercase">
+          Pro Cycling Stats ↗
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="text-right shrink-0">
+      <div class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest mb-1">Punti Stagione</div>
+      <div class="text-6xl font-black tracking-tighter italic text-primary">{{ athlete.total_points }}</div>
+    </div>
+  </div>
+
+  {# Stat Cards Grid #}
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mt-10 pt-8 border-t border-base-50">
+    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
+      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Gare a Punti</div>
+      <div class="text-2xl font-black italic">{{ athlete.races|length }}</div>
+    </div>
+    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
+      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">Miglior Risultato</div>
+      <div class="text-2xl font-black italic text-success uppercase truncate tracking-tighter">{{ athlete.best }}</div>
+    </div>
+    <div class="bg-base-50/50 rounded-2xl p-4 border border-base-100">
+      <div class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest mb-1">In Rosa Di</div>
+      {% if athlete.owner %}
+      <a href="/users/{{ athlete.owner }}" class="block hover:text-primary transition-colors">
+        <div class="text-2xl font-black italic truncate uppercase tracking-tighter">{{ athlete.owner }}</div>
+      </a>
+      {% else %}
+      <div class="text-2xl font-black italic text-base-content/45 uppercase tracking-tighter">Svincolato</div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+{# ── Performance Graph ── #}
+{% if athlete.race_points %}
+<div class="mb-16">
+  <div class="flex items-center justify-between mb-6 px-2">
+    <h3 class="text-2xl font-black italic uppercase tracking-tight">Performance <span class="text-primary">Gara</span>
+    </h3>
+    <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest">PTS Tracker</span>
+  </div>
+
+  <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm p-8">
+    {% set max_bar = athlete.race_points | max %}
+    {% set max_bar = max_bar if max_bar > 0 else 1 %}
+    <div class="flex items-end gap-3 h-32">
+      {% for pts in athlete.race_points %}
+      {% set bar_pct = (pts / max_bar * 100) | int if max_bar > 0 else 0 %}
+      <div class="flex-1 flex flex-col items-center gap-2 group">
+        <div class="w-full rounded-t-xl transition-all duration-500 relative
+          {% if pts == max_bar and pts > 0 %}bg-yellow-400
+          {% elif pts > 0 %}bg-primary/30 group-hover:bg-primary/40
+          {% else %}bg-base-100 border border-dashed border-base-200{% endif %}"
+          style="height: {{ [bar_pct, 5]|max }}%">
+          {% if pts > 0 %}
+          <div
+            class="absolute -top-4 left-1/2 -translate-x-1/2 text-[11px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+            +{{ pts }}</div>
+          {% endif %}
+        </div>
+        <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-tighter">{{
+          athlete.race_labels[loop.index0] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Risultati Table ── #}
+<div class="mb-16">
+  <div class="flex items-center justify-between mb-8 px-2">
+    <h3 class="text-2xl font-black italic uppercase tracking-tight">Storico <span class="text-primary">Risultati</span>
+    </h3>
+    <p class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Full Records</p>
+  </div>
+
+  {% if athlete.races %}
+  <div class="bg-base-100 border border-base-200 rounded-3xl shadow-sm overflow-hidden">
+    <table class="table table-lg">
+      <thead class="bg-base-50/50">
+        <tr class="text-[11px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
+          <th class="p-6">EVENTO</th>
+          <th class="text-center">POSIZIONE</th>
+          <th class="text-right p-6">PUNTI</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for race in athlete.races %}
+        <tr class="group hover:bg-primary/[0.02] border-b border-base-50">
+          <td class="p-6">
+            <div class="font-black text-sm leading-tight uppercase italic mb-1">{{ race.name }}</div>
+            <div class="text-[11px] font-bold text-base-content/50 italic">{{ race.date }}</div>
+          </td>
+          <td class="text-center">
+            {% if race.position == 1 %}
+            <span
+              class="badge badge-sm bg-yellow-400 border-none font-bold text-yellow-950 italic px-3 uppercase text-[11px]">🥇
+              1° Posto</span>
+            {% elif race.position == 2 %}
+            <span
+              class="badge badge-sm bg-slate-100 border-none font-bold text-slate-500 italic px-3 uppercase text-[11px]">🥈
+              2° Posto</span>
+            {% elif race.position == 3 %}
+            <span
+              class="badge badge-sm bg-amber-100 border-none font-bold text-amber-700 italic px-3 uppercase text-[11px]">🥉
+              3° Posto</span>
+            {% else %}
+            <span class="text-lg font-black italic text-base-content/45">{{ race.position }}°</span>
+            {% endif %}
+          </td>
+          <td
+            class="text-right p-6 font-black italic tracking-tighter text-2xl {% if race.points >= 7 %}text-yellow-600{% elif race.points >= 3 %}text-primary{% endif %}">
+            +{{ race.points }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="bg-base-900 bg-slate-800 text-white border-none">
+          <td class="p-8 font-black italic text-xl uppercase tracking-tight" colspan="2">Totale Stagione</td>
+          <td class="text-right p-8 font-black text-4xl italic tracking-tighter text-yellow-400">{{ athlete.total_points
+            }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  {% else %}
+  <div
+    class="bg-base-100 border border-2 border-dashed border-base-200 rounded-3xl p-12 text-center text-base-content/50 font-bold uppercase italic tracking-widest">
+    Nessun risultato ancora registrato.
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
+
+  h1,
+  h2,
+  h3,
+  .font-black {
+    font-family: 'Archivo Black', 'Inter', sans-serif;
+  }
+</style>
+
+{% endblock %}

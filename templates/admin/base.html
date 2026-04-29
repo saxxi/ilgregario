@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex gap-6 items-start">
+  <aside class="w-48 flex-shrink-0">
+    <ul class="menu bg-base-100 rounded-box p-2 gap-0.5">
+      <li class="menu-title text-xs">Admin</li>
+      <li><a href="/admin">Overview</a></li>
+      <li><a href="/admin/seasons">Stagioni</a></li>
+      <li><a href="/admin/users">Utenti</a></li>
+      <li><a href="/admin/athletes">Atleti</a></li>
+      <li><a href="/admin/races">Gare</a></li>
+    </ul>
+  </aside>
+  <div class="flex-1 min-w-0">
+    {% if msg %}
+    <div class="alert alert-info mb-4 text-sm">{{ msg }}</div>
+    {% endif %}
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

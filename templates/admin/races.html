@@ -1,0 +1,182 @@
+{% extends "admin/base.html" %}
+{% block title %}Gare — Admin — IlGregario{% endblock %}
+{% block admin_content %}
+<h2 class="text-2xl font-bold mb-6">Gare</h2>
+
+<div class="card bg-base-100 shadow-sm max-w-lg mb-8">
+  <div class="card-body">
+    <h3 class="card-title text-base">Aggiungi gara</h3>
+    <form method="post" action="/admin/races/create" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control col-span-2">
+          <div class="label"><span class="label-text">Nome</span></div>
+          <input name="name" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Anno</span></div>
+          <input name="year" type="number" value="2026" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Tipo</span></div>
+          <select name="race_type" class="select select-bordered select-sm">
+            <option value="one_day">One day</option>
+            <option value="stage_race">Stage race</option>
+          </select>
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Data</span></div>
+          <input name="race_date" type="date" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">N. tappe</span></div>
+          <input name="num_stages" type="number" min="1" placeholder="solo stage race" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control col-span-2">
+          <div class="label"><span class="label-text">PCS slug</span></div>
+          <input name="pcs_slug" placeholder="es. strade-bianche" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Difficoltà</span></div>
+          <select name="difficulty" class="select select-bordered select-sm">
+            <option value="">—</option>
+            {% for n in range(1,6) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Prestigio</span></div>
+          <select name="prestige" class="select select-bordered select-sm">
+            <option value="">—</option>
+            {% for n in range(1,6) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="card-actions"><button type="submit" class="btn btn-primary btn-sm">Aggiungi gara</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="table bg-base-100 rounded-box">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Anno</th>
+        <th>Tipo</th>
+        <th>Data</th>
+        <th>Tappe</th>
+        <th class="text-center">Diff</th>
+        <th class="text-center">Prest</th>
+        <th>Sync</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in races %}
+      <tr>
+        <td><a href="/admin/races/{{ r.id }}/results" class="link link-primary font-medium">{{ r.name }}</a></td>
+        <td>{{ r.year }}</td>
+        <td><span class="badge badge-ghost badge-sm">{{ r.race_type | replace('_', ' ') }}</span></td>
+        <td class="text-sm text-base-content/60">{{ r.race_date or '—' }}</td>
+        <td class="text-sm text-base-content/60">{{ r.num_stages or '—' }}</td>
+        <td class="text-center text-sm">{{ r.difficulty or '—' }}</td>
+        <td class="text-center text-sm">{{ r.prestige or '—' }}</td>
+        <td class="text-xs text-base-content/40">{{ r.synced_at[:16].replace('T', ' ') if r.synced_at else '—' }}</td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-xs btn-outline"
+                    data-id="{{ r.id }}"
+                    data-name="{{ r.name | e }}"
+                    data-year="{{ r.year }}"
+                    data-type="{{ r.race_type }}"
+                    data-date="{{ r.race_date or '' }}"
+                    data-stages="{{ r.num_stages or '' }}"
+                    data-slug="{{ r.pcs_slug or '' }}"
+                    data-difficulty="{{ r.difficulty or '' }}"
+                    data-prestige="{{ r.prestige or '' }}"
+                    onclick="openEdit(this)">Modifica</button>
+            <form method="post" action="/admin/races/{{ r.id }}/delete"
+                  onsubmit="return confirm('Eliminare {{ r.name | e }}?')">
+              <button type="submit" class="btn btn-xs btn-outline btn-error">Elimina</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="text-center text-base-content/40 italic py-6">Nessuna gara.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<dialog id="edit-dialog" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Modifica gara</h3>
+    <form id="edit-form" method="post" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control col-span-2">
+          <div class="label"><span class="label-text">Nome</span></div>
+          <input id="ef-name" name="name" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Anno</span></div>
+          <input id="ef-year" name="year" type="number" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Tipo</span></div>
+          <select id="ef-type" name="race_type" class="select select-bordered select-sm">
+            <option value="one_day">One day</option>
+            <option value="stage_race">Stage race</option>
+          </select>
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Data</span></div>
+          <input id="ef-date" name="race_date" type="date" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">N. tappe</span></div>
+          <input id="ef-stages" name="num_stages" type="number" min="1" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control col-span-2">
+          <div class="label"><span class="label-text">PCS slug</span></div>
+          <input id="ef-slug" name="pcs_slug" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Difficoltà</span></div>
+          <select id="ef-difficulty" name="difficulty" class="select select-bordered select-sm">
+            <option value="">—</option>
+            {% for n in range(1,6) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Prestigio</span></div>
+          <select id="ef-prestige" name="prestige" class="select select-bordered select-sm">
+            <option value="">—</option>
+            {% for n in range(1,6) %}<option value="{{ n }}">{{ n }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-sm btn-ghost"
+                onclick="document.getElementById('edit-dialog').close()">Annulla</button>
+        <button type="submit" class="btn btn-sm btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<script>
+function openEdit(btn) {
+  document.getElementById('edit-form').action  = '/admin/races/' + btn.dataset.id + '/edit';
+  document.getElementById('ef-name').value     = btn.dataset.name;
+  document.getElementById('ef-year').value     = btn.dataset.year;
+  document.getElementById('ef-type').value     = btn.dataset.type;
+  document.getElementById('ef-date').value     = btn.dataset.date;
+  document.getElementById('ef-stages').value   = btn.dataset.stages;
+  document.getElementById('ef-slug').value       = btn.dataset.slug;
+  document.getElementById('ef-difficulty').value = btn.dataset.difficulty;
+  document.getElementById('ef-prestige').value   = btn.dataset.prestige;
+  document.getElementById('edit-dialog').showModal();
+}
+</script>
+{% endblock admin_content %}

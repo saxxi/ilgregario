@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Gare — IlGregario{% endblock %}
+{% block content %}
+
+{# ── Header: Races Context ── #}
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+  <div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="badge badge-primary badge-sm font-bold tracking-wider uppercase">Calendario</span>
+      <p class="text-xs text-base-content/50 uppercase tracking-[0.2em] font-semibold">Stagione 2026</p>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-base-content uppercase italic">
+      Il <span class="text-primary">Programma</span>
+    </h1>
+  </div>
+
+  <div class="flex items-center gap-6">
+    <div class="flex flex-col items-end">
+      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Gare Concluse</span>
+      <span class="text-2xl font-black italic">{{ races | selectattr("is_completed") | list | length }}</span>
+    </div>
+    <div class="divider divider-horizontal mx-0"></div>
+    <div class="flex flex-col items-end">
+      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Prossimi Eventi</span>
+      <span class="text-2xl font-black italic text-primary">{{ races | rejectattr("is_completed") | list | length
+        }}</span>
+    </div>
+  </div>
+</div>
+
+{# ── Calendar Table ── #}
+<div class="bg-base-100 rounded-3xl border border-base-200 shadow-sm overflow-hidden mb-10">
+  <table class="table table-lg">
+    <thead class="bg-base-50/50">
+      <tr class="text-[11px] font-bold uppercase tracking-[0.2em] text-base-content/40 border-b border-base-200">
+        <th class="p-6">DATA</th>
+        <th>EVENTO</th>
+        <th class="hidden sm:table-cell">CATEGORIA</th>
+        <th class="text-right hidden md:table-cell">DETTAGLI</th>
+        <th class="w-16 text-center">STATO</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for race in races %}
+      <tr class="group hover:bg-primary/[0.02] border-b border-base-50 transition-colors cursor-pointer
+        {% if not race.is_completed %}opacity-60 hover:opacity-100{% endif %}"
+        onclick="location.href='/races/{{ race.id }}'">
+
+        <td class="p-6 whitespace-nowrap">
+          <div class="flex flex-col">
+            <span class="font-black italic text-lg tracking-tighter text-base-content/70">{{ race.date.split('-')[-1] if
+              '-' in race.date else race.date }}</span>
+            <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">{{ race.date }}</span>
+          </div>
+        </td>
+
+        <td>
+          <div class="flex flex-col">
+            <span
+              class="font-black text-xl leading-none uppercase italic group-hover:text-primary transition-colors tracking-tight">{{
+              race.name }}</span>
+            {% if race.race_type == "stage_race" %}
+            <span class="text-[11px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">{{ race.num_stages
+              }}
+              TAPPE</span>
+            {% else %}
+            <span class="text-[11px] font-bold text-base-content/50 uppercase mt-1 tracking-widest">GARA IN LINEA</span>
+            {% endif %}
+          </div>
+        </td>
+
+        <td class="hidden sm:table-cell">
+          <div class="flex gap-2">
+            {% if race.race_type == "one_day" %}
+            <span
+              class="badge badge-sm font-bold bg-slate-100 border-none text-slate-500 uppercase text-[11px] px-2">One-Day</span>
+            {% else %}
+            <span
+              class="badge badge-sm font-bold bg-primary/10 border-none text-primary uppercase text-[11px] px-2">Tour</span>
+            {% endif %}
+          </div>
+        </td>
+
+        <td class="text-right hidden md:table-cell">
+          <div class="flex gap-3 justify-end items-center">
+            {% if race.difficulty %}
+            <div class="flex flex-col items-end">
+              <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">Diff</span>
+              <span class="text-xs font-black italic">D{{ race.difficulty }}</span>
+            </div>
+            {% endif %}
+            {% if race.prestige %}
+            <div class="flex flex-col items-end">
+              <span class="text-[11px] font-bold text-base-content/45 uppercase tracking-widest">Pres</span>
+              <span class="text-xs font-black italic text-primary">P{{ race.prestige }}</span>
+            </div>
+            {% endif %}
+          </div>
+        </td>
+
+        <td class="p-6 text-center">
+          {% if race.is_completed %}
+          <div class="w-7 h-7 rounded-full bg-success/10 flex items-center justify-center mx-auto text-success">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          {% else %}
+          <div
+            class="w-7 h-7 rounded-full bg-base-100 border border-dashed border-base-200 flex items-center justify-center mx-auto text-base-content/10 group-hover:text-primary transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          {% endif %}
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
+
+  h1,
+  h2,
+  h3,
+  .font-black {
+    font-family: 'Archivo Black', 'Inter', sans-serif;
+  }
+</style>
+
+{% endblock %}

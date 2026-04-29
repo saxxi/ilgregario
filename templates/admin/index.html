@@ -1,11 +1,38 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
 {% block title %}Admin — IlGregario{% endblock %}
-{% block content %}
-<h2>Pannello Admin</h2>
-<ul>
-  <li><a href="#">Gestione utenti</a></li>
-  <li><a href="#">Stagioni</a></li>
-  <li><a href="#">Atleti</a></li>
-  <li><a href="#">Sincronizza risultati</a></li>
-</ul>
-{% endblock %}
+{% block admin_content %}
+<h2 class="text-2xl font-bold mb-6">Pannello Admin</h2>
+
+<div class="card bg-base-100 shadow-sm max-w-sm">
+  <div class="card-body">
+    <h3 class="card-title text-base">Sincronizza risultati</h3>
+    <p class="text-sm text-base-content/60">Scarica i risultati aggiornati da ProcyclingStats.</p>
+    <div class="card-actions mt-2">
+      <button id="sync-btn" onclick="runSync()" class="btn btn-primary btn-sm">Avvia sincronizzazione</button>
+    </div>
+    <pre id="sync-result" class="mt-3 p-3 bg-base-200 rounded text-xs hidden overflow-x-auto"></pre>
+  </div>
+</div>
+
+<script>
+async function runSync() {
+  const btn = document.getElementById('sync-btn');
+  const out = document.getElementById('sync-result');
+  btn.disabled = true;
+  btn.textContent = 'In corso…';
+  out.classList.add('hidden');
+  try {
+    const res = await fetch('/sync-races', { method: 'POST' });
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+    out.classList.remove('hidden');
+    btn.textContent = 'Completata';
+  } catch (e) {
+    out.textContent = 'Errore: ' + e;
+    out.classList.remove('hidden');
+    btn.textContent = 'Riprova';
+    btn.disabled = false;
+  }
+}
+</script>
+{% endblock admin_content %}

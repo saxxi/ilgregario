@@ -19,7 +19,7 @@ async def login_page(request: Request):
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
     # Check admin first
     if auth_module.check_admin_credentials(username, password):
-        token = auth_module.create_session_token("admin", is_admin=True)
+        token = auth_module.create_session_token("admin", is_admin=True, username=username)
         response = RedirectResponse("/admin", status_code=302)
         response.set_cookie(auth_module.SESSION_COOKIE, token, max_age=auth_module.MAX_AGE, httponly=True)
         return response
@@ -29,7 +29,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
     result = db.table("users").select("*").eq("username", username).execute()
     if result.data and auth_module.verify_password(password, result.data[0]["password_hash"]):
         user = result.data[0]
-        token = auth_module.create_session_token(user["id"], is_admin=user["is_admin"])
+        token = auth_module.create_session_token(user["id"], is_admin=user["is_admin"], username=user["username"])
         response = RedirectResponse("/dashboard", status_code=302)
         response.set_cookie(auth_module.SESSION_COOKIE, token, max_age=auth_module.MAX_AGE, httponly=True)
         return response

@@ -20,4 +20,4 @@ wheels/
 supabase/.branches/
 supabase/.temp/
 
-# uv.lock is intentionally committed (Render uses uv sync --frozen)
+tmp/

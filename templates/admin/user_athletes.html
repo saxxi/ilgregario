@@ -1,0 +1,93 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ user.username }} — Admin — IlGregario{% endblock %}
+{% block admin_content %}
+<div class="flex items-center gap-3 mb-6">
+  <a href="/admin/users" class="btn btn-ghost btn-xs">← Utenti</a>
+  <h2 class="text-2xl font-bold">{{ user.username }}{% if user.is_admin %} <span
+      class="badge badge-primary badge-sm ml-1">Admin</span>{% endif %}</h2>
+</div>
+
+{% if not seasons %}
+<div class="alert alert-warning max-w-lg">
+  Nessuna stagione disponibile. <a href="/admin/seasons" class="link font-medium">Crea una stagione</a> prima di
+  assegnare atleti.
+</div>
+
+{% else %}
+
+<div class="flex items-center gap-3 mb-6">
+  <span class="text-sm font-medium">Stagione:</span>
+  <form method="get" action="/admin/users/{{ user.id }}">
+    <select name="season_id" onchange="this.form.submit()" class="select select-bordered select-sm">
+      {% for s in seasons %}
+      <option value="{{ s.id }}" {% if selected_season and s.id==selected_season.id %}selected{% endif %}>
+        {{ s.year }}{% if s.active %} ★{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="card bg-base-100 shadow-sm mb-8">
+  <div class="card-body">
+    <form method="post" action="/admin/users/{{ user.id }}/athletes/add" class="flex gap-2 items-end flex-wrap">
+      <input type="hidden" name="season_id" value="{{ selected_season.id }}">
+      <label class="form-control flex-1 min-w-48">
+        <select name="athlete_id" required class="select select-bordered select-sm">
+          <option value="">— seleziona —</option>
+          {% for a in all_athletes %}
+          {% if a.id not in assigned_ids %}
+          <option value="{{ a.id }}" {% if a.id in taken_athletes %}disabled{% endif %}>
+            {{ a.full_name }}{% if a.id in taken_athletes %} (→ {{ taken_athletes[a.id] }}){% endif %}
+          </option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </label>
+      <label class="form-control w-28">
+        <div class="label"><span class="label-text text-xs">Prezzo acquisto</span></div>
+        <input name="acquisition_price" type="number" min="0" step="0.5" placeholder="0.0"
+               class="input input-bordered input-sm">
+      </label>
+      <button type="submit" class="btn btn-primary btn-sm mb-0.5">Aggiungi</button>
+    </form>
+  </div>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="table bg-base-100 rounded-box">
+    <thead>
+      <tr>
+        <th>Atleta</th>
+        <th>Squadra</th>
+        <th>Nazione</th>
+        <th>Prezzo</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in assignments %}
+      {% set athlete = a.athletes %}
+      <tr>
+        <td class="font-medium">{{ athlete.full_name if athlete else '—' }}</td>
+        <td class="text-base-content/70">{{ athlete.team or '' if athlete else '' }}</td>
+        <td class="text-base-content/70">{{ athlete.nationality or '' if athlete else '' }}</td>
+        <td class="text-sm">{{ a.acquisition_price if a.acquisition_price is not none else '—' }}</td>
+        <td>
+          <form method="post" action="/admin/users/{{ user.id }}/athletes/{{ a.id }}/delete">
+            <input type="hidden" name="season_id" value="{{ selected_season.id }}">
+            <button type="submit" class="btn btn-xs btn-outline btn-error">Rimuovi</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="5" class="text-center text-base-content/40 italic py-6">Nessun atleta assegnato.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endif %}
+{% endblock admin_content %}

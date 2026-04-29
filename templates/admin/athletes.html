@@ -1,0 +1,194 @@
+{% extends "admin/base.html" %}
+{% block title %}Atleti — Admin — IlGregario{% endblock %}
+{% block admin_content %}
+<h2 class="text-2xl font-bold mb-6">Atleti</h2>
+
+<div class="card bg-base-100 shadow-sm max-w-lg mb-8">
+  <div class="card-body">
+    <h3 class="card-title text-base">Aggiungi atleta</h3>
+    <div class="flex gap-2 items-end">
+      <label class="form-control flex-1">
+        <div class="label"><span class="label-text">URL corridore (ProcyclingStats)</span></div>
+        <input id="fc-url" placeholder="https://www.procyclingstats.com/rider/tadej-pogacar"
+               class="input input-bordered input-sm">
+      </label>
+      <button type="button" id="fc-btn" onclick="loadFromFC()"
+              class="btn btn-outline btn-sm mb-0.5">Carica →</button>
+    </div>
+    <p id="fc-msg" class="text-xs hidden"></p>
+
+    <form method="post" action="/admin/athletes/create" class="space-y-3 mt-2">
+      <input type="hidden" id="fc-id" name="firstcycling_id">
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control">
+          <div class="label"><span class="label-text">Nome completo</span></div>
+          <input id="new-name" name="full_name" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">PCS slug</span></div>
+          <input id="new-slug" name="pcs_slug" placeholder="es. tadej-pogacar" class="input input-bordered input-sm">
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control">
+          <div class="label"><span class="label-text">Nazione</span></div>
+          <input id="new-nat" name="nationality" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Squadra</span></div>
+          <input id="new-team" name="team" class="input input-bordered input-sm">
+        </label>
+      </div>
+      <label class="form-control">
+        <div class="label"><span class="label-text">Stato</span></div>
+        <select name="status" class="select select-bordered select-sm">
+          <option value="active">Attivo</option>
+          <option value="injured">Infortunato</option>
+          <option value="paused">In pausa</option>
+        </select>
+      </label>
+      <div class="card-actions"><button type="submit" class="btn btn-primary btn-sm">Aggiungi atleta</button></div>
+    </form>
+  </div>
+</div>
+
+<form method="get" action="/admin/athletes" class="flex gap-2 mb-4">
+  <input name="q" value="{{ q }}" placeholder="Cerca per nome…" class="input input-bordered input-sm flex-1">
+  {% if q %}<a href="/admin/athletes" class="btn btn-sm btn-ghost">✕</a>{% endif %}
+  <button type="submit" class="btn btn-sm btn-outline">Cerca</button>
+</form>
+
+<div class="overflow-x-auto">
+  <table class="table bg-base-100 rounded-box">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Stato</th>
+        <th>Nazione</th>
+        <th>Squadra</th>
+        <th>PCS slug</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in athletes %}
+      <tr>
+        <td class="font-medium">{{ a.full_name }}</td>
+        <td>
+          {% if a.status == 'injured' %}
+          <span class="badge badge-error badge-sm">Infort.</span>
+          {% elif a.status == 'paused' %}
+          <span class="badge badge-warning badge-sm">Pausa</span>
+          {% else %}
+          <span class="badge badge-ghost badge-sm">Attivo</span>
+          {% endif %}
+        </td>
+        <td class="text-base-content/70">{{ a.nationality or '' }}</td>
+        <td class="text-base-content/70">{{ a.team or '' }}</td>
+        <td><code class="text-xs bg-base-200 px-1 py-0.5 rounded">{{ a.pcs_slug or '' }}</code></td>
+        <td>
+          <div class="flex gap-2">
+            <button class="btn btn-xs btn-outline"
+                    data-id="{{ a.id }}"
+                    data-name="{{ a.full_name | e }}"
+                    data-slug="{{ a.pcs_slug or '' }}"
+                    data-nat="{{ a.nationality or '' }}"
+                    data-team="{{ a.team or '' }}"
+                    data-status="{{ a.status or 'active' }}"
+                    onclick="openEdit(this)">Modifica</button>
+            <form method="post" action="/admin/athletes/{{ a.id }}/delete"
+                  onsubmit="return confirm('Eliminare {{ a.full_name | e }}?')">
+              <button type="submit" class="btn btn-xs btn-outline btn-error">Elimina</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-base-content/40 italic py-6">Nessun atleta trovato.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<dialog id="edit-dialog" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg mb-4">Modifica atleta</h3>
+    <form id="edit-form" method="post" class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control">
+          <div class="label"><span class="label-text">Nome completo</span></div>
+          <input id="ef-name" name="full_name" required class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">PCS slug</span></div>
+          <input id="ef-slug" name="pcs_slug" class="input input-bordered input-sm">
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <label class="form-control">
+          <div class="label"><span class="label-text">Nazione</span></div>
+          <input id="ef-nat" name="nationality" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control">
+          <div class="label"><span class="label-text">Squadra</span></div>
+          <input id="ef-team" name="team" class="input input-bordered input-sm">
+        </label>
+        <label class="form-control col-span-2">
+          <div class="label"><span class="label-text">Stato</span></div>
+          <select id="ef-status" name="status" class="select select-bordered select-sm">
+            <option value="active">Attivo</option>
+            <option value="injured">Infortunato</option>
+            <option value="paused">In pausa</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-action">
+        <button type="button" class="btn btn-sm btn-ghost"
+                onclick="document.getElementById('edit-dialog').close()">Annulla</button>
+        <button type="submit" class="btn btn-sm btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
+<script>
+async function loadFromFC() {
+  const url = document.getElementById('fc-url').value.trim();
+  const btn = document.getElementById('fc-btn');
+  const msg = document.getElementById('fc-msg');
+  if (!url) return;
+  btn.disabled = true; btn.textContent = '…';
+  msg.classList.add('hidden');
+  try {
+    const res  = await fetch('/admin/athletes/fc-fetch?url=' + encodeURIComponent(url));
+    const data = await res.json();
+    if (data.error) {
+      msg.textContent = data.error;
+      msg.className = 'text-xs text-error';
+    } else {
+      document.getElementById('new-name').value = data.full_name       || '';
+      document.getElementById('new-nat').value  = data.nationality     || '';
+      document.getElementById('new-team').value = data.team            || '';
+      document.getElementById('new-slug').value = data.pcs_slug        || '';
+      document.getElementById('fc-id').value    = data.firstcycling_id || '';
+      if (data.warning) { msg.textContent = data.warning; msg.className = 'text-xs text-warning'; }
+    }
+  } catch (e) {
+    msg.textContent = 'Errore di rete: ' + e; msg.className = 'text-xs text-error';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Carica →';
+  }
+}
+
+function openEdit(btn) {
+  document.getElementById('edit-form').action = '/admin/athletes/' + btn.dataset.id + '/edit';
+  document.getElementById('ef-name').value  = btn.dataset.name;
+  document.getElementById('ef-slug').value  = btn.dataset.slug;
+  document.getElementById('ef-nat').value   = btn.dataset.nat;
+  document.getElementById('ef-team').value   = btn.dataset.team;
+  document.getElementById('ef-status').value = btn.dataset.status || 'active';
+  document.getElementById('edit-dialog').showModal();
+}
+</script>
+{% endblock admin_content %}

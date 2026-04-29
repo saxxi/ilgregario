@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Squadre — IlGregario{% endblock %}
+{% block content %}
+
+{# ── Header: Teams Context ── #}
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+  <div>
+    <div class="flex items-center gap-2 mb-2">
+      <span class="badge badge-primary badge-sm font-bold tracking-wider uppercase">Manager</span>
+      <p class="text-xs text-base-content/50 uppercase tracking-[0.2em] font-semibold">Stagione 2026</p>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black tracking-tighter text-base-content uppercase italic">
+      Le <span class="text-primary">Squadre</span>
+    </h1>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <div class="flex flex-col items-end">
+      <span class="text-[11px] uppercase font-bold text-base-content/40 tracking-widest">Team Attivi</span>
+      <span class="text-2xl font-black italic">{{ users|length }}</span>
+    </div>
+    <div class="divider divider-horizontal mx-0"></div>
+    <a href="/dashboard"
+      class="btn btn-ghost btn-sm font-bold tracking-tight text-base-content/50 hover:text-primary uppercase text-[11px]">←
+      Classifica</a>
+  </div>
+</div>
+
+{% if not users %}
+<div class="hero min-h-[300px] bg-base-100 rounded-3xl border border-base-200">
+  <div class="hero-content text-center">
+    <div class="max-w-sm">
+      <div class="text-5xl mb-4 opacity-20">🛡️</div>
+      <h2 class="text-2xl font-black uppercase tracking-tight mb-2">Paddock Vuoto</h2>
+      <p class="text-base-content/50 text-sm">Nessuna squadra è stata ancora configurata.</p>
+    </div>
+  </div>
+</div>
+{% else %}
+
+<div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+  {% for u in users %}
+  <div
+    class="group relative bg-white border border-base-200 rounded-3xl p-6 shadow-sm hover:border-primary/20 transition-all duration-300
+    {% if u.rank == 1 %}ring-2 ring-yellow-400/20 border-yellow-400{% elif u.rank == 2 %}border-slate-200{% elif u.rank == 3 %}border-amber-100{% endif %}">
+
+    {# Rank Decoration #}
+    <div class="absolute -top-3 -right-3 w-10 h-10 rounded-2xl flex items-center justify-center font-black text-lg italic shadow-sm z-10
+      {% if u.rank == 1 %}bg-yellow-400 text-yellow-950
+      {% elif u.rank == 2 %}bg-slate-200 text-slate-600
+      {% elif u.rank == 3 %}bg-amber-100 text-amber-700
+      {% else %}bg-slate-800 text-white{% endif %}">
+      {{ u.rank }}°
+    </div>
+
+    {# Team Identity #}
+    <div class="flex items-center gap-5 mb-6">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-sm
+        {% if u.rank == 1 %}bg-gradient-to-br from-yellow-400 to-yellow-500
+        {% elif u.rank == 2 %}bg-gradient-to-br from-slate-200 to-slate-400
+        {% elif u.rank == 3 %}bg-gradient-to-br from-amber-300 to-amber-500
+        {% else %}bg-primary{% endif %}">
+        {{ u.initials }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <a href="/users/{{ u.username }}"
+          class="font-black text-2xl italic tracking-tighter uppercase group-hover:text-primary transition-colors block truncate">{{
+          u.username }}</a>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="text-3xl font-black tracking-tighter {% if u.rank == 1 %}text-primary{% endif %}">{{
+            u.total_points }}</span>
+          <span class="text-[11px] font-bold text-base-content/50 uppercase tracking-widest italic">Punti</span>
+
+          {% if u.streak == "hot" %}
+          <span class="badge badge-xs bg-orange-500 border-none text-[11px] font-bold text-white px-1 ml-auto">HOT
+            🔥</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Roster Preview #}
+    <div class="bg-base-50 rounded-2xl p-4 border border-base-100">
+      <div class="flex justify-between items-center mb-3">
+        <p class="text-[11px] font-bold text-base-content/40 uppercase tracking-widest">Rosa Attiva</p>
+        <span class="text-[11px] font-bold text-base-content/45 uppercase">{{ u.athletes|length }} Atleti</span>
+      </div>
+      <div class="space-y-2.5">
+        {% for ath in u.athletes[:5] %}
+        <div class="flex items-center justify-between gap-2 border-b border-base-200/50 pb-2 last:border-0 last:pb-0">
+          <div class="min-w-0 flex-1">
+            <div class="text-[11px] font-bold text-base-content/70 truncate leading-tight uppercase tracking-tight">{{
+              ath.flag }} {{ ath.full_name }}</div>
+          </div>
+          {% if ath.total_points > 0 %}
+          <span class="text-[11px] font-black text-primary italic">+{{ ath.total_points }}</span>
+          {% else %}
+          <span class="text-[11px] font-bold text-base-content/10">—</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if u.athletes|length > 5 %}
+        <div class="text-[11px] font-bold text-center text-base-content/45 uppercase italic pt-1">+ altri {{
+          u.athletes|length - 5 }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Action Footer #}
+    <div class="mt-6 flex justify-between items-center">
+      <a href="/users/{{ u.username }}"
+        class="text-[11px] font-bold text-base-content/40 hover:text-primary transition-colors uppercase tracking-widest italic flex items-center gap-1">
+        Dettaglio Squadra
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+      {% if u.gap < 0 %} <span class="text-[11px] font-bold text-error/40 italic tracking-tighter uppercase">{{ u.gap }}
+        pt dal leader</span>
+        {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% endif %}
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
+
+  h1,
+  h2,
+  h3,
+  .font-black {
+    font-family: 'Archivo Black', 'Inter', sans-serif;
+  }
+</style>
+
+{% endblock %}

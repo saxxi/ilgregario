@@ -13,4 +13,4 @@ app.include_router(admin.router)
 
 @app.get("/")
 async def root():
-    return RedirectResponse("/login", status_code=302)
+    return RedirectResponse("/dashboard", status_code=302)

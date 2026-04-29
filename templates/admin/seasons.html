@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+{% block title %}Stagioni — Admin — IlGregario{% endblock %}
+{% block admin_content %}
+<h2 class="text-2xl font-bold mb-6">Stagioni</h2>
+
+<div class="card bg-base-100 shadow-sm max-w-xs mb-8">
+  <div class="card-body">
+    <h3 class="card-title text-base">Crea stagione</h3>
+    <form method="post" action="/admin/seasons/create" class="flex gap-2 items-end">
+      <label class="form-control flex-1">
+        <div class="label"><span class="label-text">Anno</span></div>
+        <input name="year" type="number" value="2026" required class="input input-bordered input-sm">
+      </label>
+      <button type="submit" class="btn btn-primary btn-sm mb-0.5">Crea</button>
+    </form>
+  </div>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="table bg-base-100 rounded-box">
+    <thead>
+      <tr>
+        <th>Anno</th>
+        <th>Stato</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in seasons %}
+      <tr>
+        <td class="font-medium">{{ s.year }}</td>
+        <td>{% if s.active %}<span class="badge badge-primary badge-sm">Attiva</span>{% endif %}</td>
+        <td>
+          <div class="flex gap-2">
+            {% if not s.active %}
+            <form method="post" action="/admin/seasons/{{ s.id }}/activate">
+              <button type="submit" class="btn btn-xs btn-outline">Attiva</button>
+            </form>
+            {% endif %}
+            <form method="post" action="/admin/seasons/{{ s.id }}/delete"
+                  onsubmit="return confirm('Eliminare {{ s.year }}?')">
+              <button type="submit" class="btn btn-xs btn-outline btn-error">Elimina</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3" class="text-center text-base-content/40 italic py-6">Nessuna stagione.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock admin_content %}

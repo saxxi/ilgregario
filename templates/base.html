@@ -1,24 +1,59 @@
 <!doctype html>
 <html lang="it" data-theme="light">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}IlGregario{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <nav class="container">
-    <ul><li><strong>IlGregario</strong></li></ul>
-    <ul>
-      {% if session is defined and session %}
-        <li><a href="/dashboard">Classifica</a></li>
-        {% if session.is_admin %}<li><a href="/admin">Admin</a></li>{% endif %}
-        <li><a href="/logout">Esci</a></li>
-      {% endif %}
-    </ul>
+
+<body class="bg-base-200 min-h-screen flex flex-col">
+
+  <nav class="sticky top-0 z-50 bg-base-100 px-6"
+       style="box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 4px 20px rgba(0,0,0,0.07)">
+    <div class="navbar max-w-7xl mx-auto px-0 py-0">
+      <div class="flex-1">
+        <a href="/" class="font-black text-lg tracking-tight">IlGregario</a>
+      </div>
+      <div class="flex gap-1">
+        <a href="/dashboard" class="btn btn-ghost btn-sm">Classifica</a>
+        <a href="/users" class="btn btn-ghost btn-sm">Squadre</a>
+        <a href="/races" class="btn btn-ghost btn-sm">Gare</a>
+        {% if session is defined and session %}
+        <a {% if not session.is_admin %}href="/users/{{ session.username }}"{% endif %} class="btn btn-ghost btn-sm {% if session.is_admin %}btn-disabled{% endif %}">La mia squadra</a>
+        {% if session.is_admin %}
+        <a href="/admin" class="btn btn-ghost btn-sm">Admin</a>
+        {% endif %}
+        <a href="/logout" class="btn btn-ghost btn-sm">Esci</a>
+        {% else %}
+        <a href="/login" class="btn btn-primary btn-sm">Accedi</a>
+        {% endif %}
+      </div>
+    </div>
   </nav>
-  <main class="container">
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-6 py-8">
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="mt-16 border-t border-base-200 bg-base-100"
+          style="box-shadow: 0 -1px 0 rgba(0,0,0,0.04)">
+    <div class="max-w-7xl mx-auto px-6 py-8 flex flex-wrap items-center justify-between gap-6">
+      <div>
+        <div class="font-black text-base tracking-tight mb-0.5">IlGregario</div>
+        <div class="text-xs text-base-content/35">Fantasy Cycling</div>
+      </div>
+      <nav class="flex gap-5 text-sm text-base-content/50">
+        <a href="/dashboard" class="hover:text-base-content transition-colors">Classifica</a>
+        <a href="/users" class="hover:text-base-content transition-colors">Squadre</a>
+        <a href="/races" class="hover:text-base-content transition-colors">Gare</a>
+      </nav>
+      <div class="text-xs text-base-content/25">2026</div>
+    </div>
+  </footer>
+
 </body>
+
 </html>
