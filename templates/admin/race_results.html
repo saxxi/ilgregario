@@ -10,6 +10,7 @@
   <div class="card-body">
     <h3 class="card-title text-base">Aggiungi risultato</h3>
     <form method="post" action="/admin/races/{{ race.id }}/results/add" class="space-y-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
       <div class="grid grid-cols-2 gap-3">
         <label class="form-control col-span-2">
           <div class="label"><span class="label-text">Corridore</span></div>
@@ -93,6 +94,7 @@
         <td class="font-semibold">{{ r.points }}</td>
         <td>
           <form method="post" action="/admin/races/{{ race.id }}/results/{{ r.id }}/delete">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
             <button type="submit" class="btn btn-xs btn-outline btn-error">✕</button>
           </form>
         </td>

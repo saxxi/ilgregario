@@ -3,12 +3,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ADMIN_USERNAME = os.environ["ADMIN_USERNAME"]
-ADMIN_PASSWORD = os.environ["ADMIN_PASSWORD"]
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 SECRET_KEY = os.environ["SECRET_KEY"]
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 GC_SCORING = {
     "by_name": {

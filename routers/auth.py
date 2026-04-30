@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 import auth as auth_module
 from database import get_db
+from templates_env import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/login", response_class=HTMLResponse)
@@ -17,20 +16,14 @@ async def login_page(request: Request):
 
 @router.post("/login")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Check admin first
-    if auth_module.check_admin_credentials(username, password):
-        token = auth_module.create_session_token("admin", is_admin=True, username=username)
-        response = RedirectResponse("/admin", status_code=302)
-        response.set_cookie(auth_module.SESSION_COOKIE, token, max_age=auth_module.MAX_AGE, httponly=True)
-        return response
-
-    # Check DB users
     db = get_db()
     result = db.table("users").select("*").eq("username", username).execute()
     if result.data and auth_module.verify_password(password, result.data[0]["password_hash"]):
         user = result.data[0]
-        token = auth_module.create_session_token(user["id"], is_admin=user["is_admin"], username=user["username"])
-        response = RedirectResponse("/dashboard", status_code=302)
+        role = user.get("role") or ("admin" if user.get("is_admin") else "user")
+        token = auth_module.create_session_token(user["id"], role=role, username=user["username"])
+        dest = "/admin" if role in ("admin", "super_admin") else "/dashboard"
+        response = RedirectResponse(dest, status_code=302)
         response.set_cookie(auth_module.SESSION_COOKIE, token, max_age=auth_module.MAX_AGE, httponly=True)
         return response
 

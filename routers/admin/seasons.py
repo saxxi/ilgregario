@@ -1,10 +1,13 @@
+import logging
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 
 from database import get_db
-from .shared import _guard, _redir, templates
+from .shared import _guard, _guard_post, _redir, templates
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/admin/seasons", response_class=HTMLResponse)
@@ -33,7 +36,7 @@ async def seasons_create(
     min_runners: str = Form(default="9"),
     max_runners: str = Form(default="30"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     try:
@@ -45,8 +48,9 @@ async def seasons_create(
             "max_runners": int(max_runners) if max_runners.strip() else 30,
         }).execute()
         return _redir("/admin/seasons", "Stagione creata")
-    except Exception as exc:
-        return _redir("/admin/seasons", f"Errore: {exc}")
+    except Exception:
+        logger.exception("seasons_create failed")
+        return _redir("/admin/seasons", "Errore interno")
 
 
 @router.post("/admin/seasons/{season_id}/edit")
@@ -57,7 +61,7 @@ async def seasons_edit(
     min_runners: str = Form(default="9"),
     max_runners: str = Form(default="30"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     try:
@@ -67,13 +71,14 @@ async def seasons_edit(
             "max_runners": int(max_runners) if max_runners.strip() else 30,
         }).eq("id", season_id).execute()
         return _redir("/admin/seasons", "Stagione aggiornata")
-    except Exception as exc:
-        return _redir("/admin/seasons", f"Errore: {exc}")
+    except Exception:
+        logger.exception("seasons_edit failed")
+        return _redir("/admin/seasons", "Errore interno")
 
 
 @router.post("/admin/seasons/{season_id}/activate")
 async def seasons_activate(request: Request, season_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     db = get_db()
@@ -84,7 +89,7 @@ async def seasons_activate(request: Request, season_id: str):
 
 @router.post("/admin/seasons/{season_id}/delete")
 async def seasons_delete(request: Request, season_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("seasons").delete().eq("id", season_id).execute()

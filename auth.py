@@ -1,11 +1,12 @@
 import bcrypt
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from fastapi import Request, HTTPException
-from config import SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD
+from config import SECRET_KEY
 
 _serializer = URLSafeTimedSerializer(SECRET_KEY)
 SESSION_COOKIE = "ilgregario_session"
 MAX_AGE = 60 * 60 * 24 * 7  # 7 days
+_CSRF_MAX_AGE = 60 * 60      # 1 hour
 
 
 def hash_password(plain: str) -> str:
@@ -16,8 +17,13 @@ def verify_password(plain: str, hashed: str) -> bool:
     return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
-def create_session_token(user_id: str, is_admin: bool, username: str = "") -> str:
-    return _serializer.dumps({"user_id": user_id, "is_admin": is_admin, "username": username})
+def create_session_token(user_id: str, role: str, username: str = "") -> str:
+    return _serializer.dumps({
+        "user_id": user_id,
+        "role": role,
+        "is_admin": role in ("admin", "super_admin"),
+        "username": username,
+    })
 
 
 def decode_session_token(token: str) -> dict | None:
@@ -48,5 +54,13 @@ def require_admin(request: Request) -> dict:
     return session
 
 
-def check_admin_credentials(username: str, password: str) -> bool:
-    return username == ADMIN_USERNAME and password == ADMIN_PASSWORD
+def make_csrf_token(user_id: str) -> str:
+    return _serializer.dumps({"csrf": 1, "uid": user_id})
+
+
+def verify_csrf_token(token: str, user_id: str) -> bool:
+    try:
+        data = _serializer.loads(token, max_age=_CSRF_MAX_AGE)
+        return data.get("uid") == user_id
+    except (BadSignature, SignatureExpired):
+        return False

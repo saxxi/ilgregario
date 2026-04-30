@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Form, Request
@@ -5,9 +6,10 @@ from fastapi.responses import HTMLResponse
 
 from database import get_db
 from scoring import score_result
-from .shared import _guard, _redir, templates
+from .shared import _guard, _guard_post, _redir, templates
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/admin/races", response_class=HTMLResponse)
@@ -42,7 +44,7 @@ async def races_create(
     difficulty: str = Form(default=""),
     prestige: str = Form(default=""),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     db = get_db()
@@ -61,8 +63,9 @@ async def races_create(
             "prestige_updated_at": now if prestige.strip() else None,
         }).execute()
         return _redir("/admin/races", "Gara aggiunta")
-    except Exception as exc:
-        return _redir("/admin/races", f"Errore: {exc}")
+    except Exception:
+        logger.exception("races_create failed")
+        return _redir("/admin/races", "Errore interno")
 
 
 @router.post("/admin/races/{race_id}/edit")
@@ -78,7 +81,7 @@ async def races_edit(
     difficulty: str = Form(default=""),
     prestige: str = Form(default=""),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     now = datetime.now(timezone.utc).isoformat()
@@ -96,13 +99,14 @@ async def races_edit(
             "prestige_updated_at": now if prestige.strip() else None,
         }).eq("id", race_id).execute()
         return _redir("/admin/races", "Gara aggiornata")
-    except Exception as exc:
-        return _redir("/admin/races", f"Errore: {exc}")
+    except Exception:
+        logger.exception("races_edit failed")
+        return _redir("/admin/races", "Errore interno")
 
 
 @router.post("/admin/races/{race_id}/delete")
 async def races_delete(request: Request, race_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("races").delete().eq("id", race_id).execute()
@@ -168,7 +172,7 @@ async def race_results_add(
     points: str = Form(default=""),
     status: str = Form(default="ok"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     db = get_db()
@@ -188,13 +192,14 @@ async def race_results_add(
             "status": status,
         }).execute()
         return _redir(f"/admin/races/{race_id}/results", "Risultato aggiunto")
-    except Exception as exc:
-        return _redir(f"/admin/races/{race_id}/results", f"Errore: {exc}")
+    except Exception:
+        logger.exception("race_results_add failed")
+        return _redir(f"/admin/races/{race_id}/results", "Errore interno")
 
 
 @router.post("/admin/races/{race_id}/results/{result_id}/delete")
 async def race_results_delete(request: Request, race_id: str, result_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("race_results").delete().eq("id", result_id).execute()

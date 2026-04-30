@@ -1,11 +1,16 @@
+import logging
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 
 import auth as auth_module
 from database import get_db
-from .shared import _guard, _redir, templates
+from .shared import _guard, _guard_post, _redir, templates
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+_ASSIGNABLE_ROLES = ("user", "admin")
 
 
 @router.get("/admin/users", response_class=HTMLResponse)
@@ -16,7 +21,7 @@ async def users_list(request: Request, msg: str = ""):
     db = get_db()
     users = (
         db.table("users")
-        .select("id, username, is_admin, created_at")
+        .select("id, username, role, is_admin, created_at")
         .order("created_at")
         .execute()
         .data or []
@@ -32,21 +37,25 @@ async def users_create(
     request: Request,
     username: str = Form(...),
     password: str = Form(...),
-    is_admin: str = Form(default=""),
+    role: str = Form(default="user"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
+    if role not in _ASSIGNABLE_ROLES:
+        return _redir("/admin/users", "Ruolo non valido")
     db = get_db()
     try:
         db.table("users").insert({
             "username": username.strip(),
             "password_hash": auth_module.hash_password(password),
-            "is_admin": bool(is_admin),
+            "role": role,
+            "is_admin": role == "admin",
         }).execute()
         return _redir("/admin/users", "Utente creato")
-    except Exception as exc:
-        return _redir("/admin/users", f"Errore: {exc}")
+    except Exception:
+        logger.exception("users_create failed")
+        return _redir("/admin/users", "Errore interno")
 
 
 @router.get("/admin/users/{user_id}", response_class=HTMLResponse)
@@ -55,7 +64,7 @@ async def user_detail(request: Request, user_id: str, season_id: str = "", msg: 
     if err:
         return err
     db = get_db()
-    user = db.table("users").select("id, username, is_admin").eq("id", user_id).single().execute().data
+    user = db.table("users").select("id, username, role, is_admin").eq("id", user_id).single().execute().data
     seasons = db.table("seasons").select("id, name, year, active").order("year", desc=True).execute().data or []
 
     selected_season = None
@@ -114,24 +123,31 @@ async def users_edit(
     user_id: str,
     username: str = Form(...),
     password: str = Form(default=""),
-    is_admin: str = Form(default=""),
+    role: str = Form(default="user"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
-    updates = {"username": username.strip(), "is_admin": bool(is_admin)}
+    if role not in _ASSIGNABLE_ROLES:
+        return _redir("/admin/users", "Ruolo non valido")
+    updates = {
+        "username": username.strip(),
+        "role": role,
+        "is_admin": role == "admin",
+    }
     if password.strip():
         updates["password_hash"] = auth_module.hash_password(password.strip())
     try:
         get_db().table("users").update(updates).eq("id", user_id).execute()
         return _redir("/admin/users", "Utente aggiornato")
-    except Exception as exc:
-        return _redir("/admin/users", f"Errore: {exc}")
+    except Exception:
+        logger.exception("users_edit failed")
+        return _redir("/admin/users", "Errore interno")
 
 
 @router.post("/admin/users/{user_id}/delete")
 async def users_delete(request: Request, user_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("users").delete().eq("id", user_id).execute()
@@ -146,7 +162,7 @@ async def user_athletes_add(
     season_id: str = Form(...),
     acquisition_price: str = Form(default=""),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     db = get_db()
@@ -171,13 +187,14 @@ async def user_athletes_add(
             "acquisition_price": float(acquisition_price) if acquisition_price.strip() else None,
         }).execute()
         return _redir(f"/admin/users/{user_id}?season_id={season_id}", "Atleta aggiunto")
-    except Exception as exc:
-        return _redir(f"/admin/users/{user_id}?season_id={season_id}", f"Errore: {exc}")
+    except Exception:
+        logger.exception("user_athletes_add failed")
+        return _redir(f"/admin/users/{user_id}?season_id={season_id}", "Errore interno")
 
 
 @router.post("/admin/users/{user_id}/athletes/{ua_id}/delete")
 async def user_athletes_delete(request: Request, user_id: str, ua_id: str, season_id: str = Form(default="")):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("user_athletes").delete().eq("id", ua_id).execute()
@@ -193,7 +210,7 @@ async def user_athletes_edit_price(
     acquisition_price: str = Form(default=""),
     season_id: str = Form(default=""),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     price = float(acquisition_price) if acquisition_price.strip() else None

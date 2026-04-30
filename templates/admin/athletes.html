@@ -18,6 +18,7 @@
     <p id="fc-msg" class="text-xs hidden"></p>
 
     <form method="post" action="/admin/athletes/create" class="space-y-3 mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
       <input type="hidden" id="fc-id" name="firstcycling_id">
       <div class="grid grid-cols-2 gap-3">
         <label class="form-control">
@@ -60,6 +61,7 @@
   </form>
   <form method="post" action="/admin/athletes/fetch-photos"
         onsubmit="return confirm('Avvia il download delle foto mancanti da Wikipedia? Può richiedere diversi minuti.')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
     <button type="submit" class="btn btn-sm btn-outline">📷 Scarica foto mancanti</button>
   </form>
 </div>
@@ -104,6 +106,7 @@
                     onclick="openEdit(this)">Modifica</button>
             <form method="post" action="/admin/athletes/{{ a.id }}/delete"
                   onsubmit="return confirm('Eliminare {{ a.full_name | e }}?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
               <button type="submit" class="btn btn-xs btn-outline btn-error">Elimina</button>
             </form>
           </div>
@@ -120,6 +123,7 @@
   <div class="modal-box">
     <h3 class="font-bold text-lg mb-4">Modifica atleta</h3>
     <form id="edit-form" method="post" class="space-y-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(session.user_id) }}">
       <div class="grid grid-cols-2 gap-3">
         <label class="form-control">
           <div class="label"><span class="label-text">Nome completo</span></div>

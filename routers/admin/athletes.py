@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from urllib.parse import urlparse, parse_qs
 
 from fastapi import APIRouter, BackgroundTasks, Form, Request
@@ -8,9 +9,10 @@ from database import get_db
 from importers.pcs import PCSImporter
 from utils import slugify
 from scripts.fetch_athlete_photos import run_missing as _run_missing_photos
-from .shared import _guard, _redir, templates
+from .shared import _guard, _guard_post, _redir, templates
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/admin/athletes/fc-fetch")
@@ -21,7 +23,6 @@ async def athletes_fc_fetch(url: str = ""):
         parsed = urlparse(url)
         host = parsed.hostname or ""
 
-        # ProcyclingStats URL: procyclingstats.com/rider/<slug>
         if "procyclingstats.com" in host:
             parts = [p for p in parsed.path.split("/") if p]
             if len(parts) < 2 or parts[0] != "rider":
@@ -36,7 +37,6 @@ async def athletes_fc_fetch(url: str = ""):
                 "firstcycling_id": None,
             })
 
-        # FirstCycling URL: firstcycling.com/rider.php?r=<id>
         if "firstcycling.com" in host:
             params = parse_qs(parsed.query)
             if "r" not in params:
@@ -76,7 +76,7 @@ async def athletes_list(request: Request, msg: str = "", q: str = ""):
 
 @router.post("/admin/athletes/fetch-photos")
 async def athletes_fetch_photos(request: Request, background_tasks: BackgroundTasks):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     background_tasks.add_task(_run_missing_photos)
@@ -93,7 +93,7 @@ async def athletes_create(
     firstcycling_id: str = Form(default=""),
     status: str = Form(default="active"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     db = get_db()
@@ -110,8 +110,9 @@ async def athletes_create(
             "status": status,
         }).execute()
         return _redir("/admin/athletes", "Atleta aggiunto")
-    except Exception as exc:
-        return _redir("/admin/athletes", f"Errore: {exc}")
+    except Exception:
+        logger.exception("athletes_create failed")
+        return _redir("/admin/athletes", "Errore interno")
 
 
 @router.post("/admin/athletes/{athlete_id}/edit")
@@ -124,7 +125,7 @@ async def athletes_edit(
     team: str = Form(default=""),
     status: str = Form(default="active"),
 ):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     name = full_name.strip()
@@ -142,7 +143,7 @@ async def athletes_edit(
 
 @router.post("/admin/athletes/{athlete_id}/delete")
 async def athletes_delete(request: Request, athlete_id: str):
-    session, err = _guard(request)
+    session, err = await _guard_post(request)
     if err:
         return err
     get_db().table("athletes").delete().eq("id", athlete_id).execute()

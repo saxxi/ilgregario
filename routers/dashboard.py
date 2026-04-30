@@ -2,14 +2,12 @@ import uuid
 
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-
 import auth as auth_module
 import queries as db_queries
 from database import get_db
+from templates_env import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 def _catchability(leaderboard: list[dict], max_pts_remaining: int) -> list[dict]:
@@ -115,10 +113,13 @@ async def account_update(
     current_password: str = Form(...),
     new_password: str = Form(""),
     confirm_password: str = Form(""),
+    csrf_token: str = Form(default=""),
 ):
     session = auth_module.get_session(request)
     if not session or session.get("is_admin"):
         return RedirectResponse("/dashboard", status_code=302)
+    if not auth_module.verify_csrf_token(csrf_token, session["user_id"]):
+        return HTMLResponse("CSRF token non valido", status_code=403)
 
     db      = get_db()
     user_id = session["user_id"]
@@ -154,7 +155,7 @@ async def account_update(
         db.table("users").update(updates).eq("id", user_id).execute()
 
     new_username = updates.get("username", user["username"])
-    new_token    = auth_module.create_session_token(user_id, is_admin=False, username=new_username)
+    new_token    = auth_module.create_session_token(user_id, role=session.get("role", "user"), username=new_username)
     response = templates.TemplateResponse(
         request, "dashboard/account.html",
         {"session": {**session, "username": new_username}, "error": None, "success": "Profilo aggiornato."},

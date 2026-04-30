@@ -15,7 +15,7 @@
 
   {# Background category decoration #}
   <div
-    class="absolute -right-8 -bottom-12 font-black text-[120px] italic text-base-content/[0.02] select-none pointer-events-none uppercase">
+    class="absolute -right-8 -bottom-12 font-black text-[120px] italic text-base-content/[0.02] select-none pointer-events-none uppercase pe-8">
     {% if race.race_type == "one_day" %}CLASS{% else %}TOUR{% endif %}
   </div>
 
@@ -110,7 +110,8 @@
         {% for r in us.athletes %}
         <div class="flex items-center gap-3">
           {% if r.photo_url %}
-          <a href="/athletes/{{ r.slug }}" class="shrink-0 w-7 h-8 rounded-md overflow-hidden shadow-sm ring-1 ring-base-200">
+          <a href="/athletes/{{ r.slug }}"
+            class="shrink-0 w-7 h-8 rounded-md overflow-hidden shadow-sm ring-1 ring-base-200">
             <img src="{{ r.photo_url }}" alt="{{ r.full_name }}" class="w-full h-full object-cover object-top">
           </a>
           {% else %}
@@ -184,7 +185,8 @@
           <td>
             <div class="flex items-center gap-3">
               {% if r.photo_url %}
-              <a href="/athletes/{{ r.slug }}" class="shrink-0 w-9 h-11 rounded-lg overflow-hidden shadow-sm ring-1 ring-base-200 {% if r.is_mine %}ring-primary/30{% endif %}">
+              <a href="/athletes/{{ r.slug }}"
+                class="shrink-0 w-9 h-11 rounded-lg overflow-hidden shadow-sm ring-1 ring-base-200 {% if r.is_mine %}ring-primary/30{% endif %}">
                 <img src="{{ r.photo_url }}" alt="{{ r.full_name }}" class="w-full h-full object-cover object-top">
               </a>
               {% else %}
