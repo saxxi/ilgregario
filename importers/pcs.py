@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from .base import BaseImporter, RaceMeta, RiderProfile, RiderResult
+from utils import FLAG_CODE_TO_COUNTRY
 
 log = logging.getLogger(__name__)
 
@@ -126,6 +127,66 @@ class PCSImporter(BaseImporter):
             results.append(RiderResult(position=pos, rider_slug=rider_slug))
 
         return results
+
+    def fetch_teams(self, year: int, circuits: list[str]) -> list[tuple[str, str]]:
+        """Return (team_name, team_slug) for each team in the requested circuits."""
+        soup = self._get(f"teams.php?year={year}&filter=Filter")
+        teams: list[tuple[str, str]] = []
+        for ul in soup.find_all("ul", class_=lambda c: c and "lh18" in c):
+            heading_tag = ul.find_previous_sibling()
+            while heading_tag and heading_tag.name not in ("h2", "h3", "h4"):
+                heading_tag = heading_tag.find_previous_sibling()
+            heading = heading_tag.get_text(strip=True) if heading_tag else ""
+            if not any(c.lower() in heading.lower() for c in circuits):
+                continue
+            for li in ul.find_all("li"):
+                a = li.find("a", href=True)
+                if a and a["href"].startswith("team/"):
+                    teams.append((a.get_text(strip=True), a["href"].replace("team/", "")))
+        return teams
+
+    def fetch_roster(self, team_slug: str, team_name: str) -> list[dict]:
+        """Return rider dicts for a team."""
+        soup = self._get(f"team/{team_slug}")
+
+        rider_table = None
+        for table in soup.find_all("table"):
+            if table.find("a", href=lambda h: h and h.startswith("rider/")):
+                rider_table = table
+                break
+
+        if not rider_table:
+            log.warning("No rider table found for %s", team_slug)
+            return []
+
+        riders: list[dict] = []
+        seen_slugs: set[str] = set()
+        for row in rider_table.find_all("tr"):
+            a = row.find("a", href=lambda h: h and h.startswith("rider/"))
+            if not a:
+                continue
+            slug = a["href"].replace("rider/", "").strip("/")
+            if not slug or slug in seen_slugs:
+                continue
+            seen_slugs.add(slug)
+
+            # PCS stores names as "SURNAME Firstname" — normalise to title case
+            full_name = " ".join(w.capitalize() for w in a.get_text(strip=True).split())
+
+            nationality = ""
+            flag_span = row.find("span", class_=lambda c: c and "flag" in c)
+            if flag_span:
+                classes  = flag_span.get("class", [])
+                nat_code = next((c for c in classes if c != "flag"), "")
+                nationality = FLAG_CODE_TO_COUNTRY.get(nat_code, nat_code.upper())
+
+            riders.append({
+                "pcs_slug": slug,
+                "full_name": full_name,
+                "nationality": nationality,
+                "team": team_name,
+            })
+        return riders
 
     def fetch_rider(self, slug: str) -> RiderProfile:
         soup = self._get(f"rider/{slug}")

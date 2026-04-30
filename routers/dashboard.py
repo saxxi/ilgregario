@@ -1,9 +1,11 @@
+import uuid
+
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 import auth as auth_module
-import db_queries
+import queries as db_queries
 from database import get_db
 
 router = APIRouter()
@@ -31,25 +33,22 @@ def _catchability(leaderboard: list[dict], max_pts_remaining: int) -> list[dict]
 async def dashboard(request: Request):
     session = auth_module.get_session(request)
 
-    leaderboard   = db_queries.get_leaderboard()
-    recent_races  = db_queries.get_recent_races(3)
-    top_athletes  = db_queries.get_top_athletes()
-    next_race     = db_queries.get_next_race()
-    race_chart    = db_queries.get_race_chart_data()
-    season        = db_queries._load_season()
-    season_progress = db_queries.get_season_progress(season) if season else {
-        "pct": 0, "races_done": 0, "races_total": 0,
-        "days_to_end": None, "season_end_str": "",
-        "days_to_next": None, "next_race_name": None, "next_race_short": None,
-        "max_pts_remaining": 0, "timeline": [],
-    }
-    races_done    = season_progress.get("races_done", 0)
-    races_total   = season_progress.get("races_total", 0)
-    season_name   = season["name"] if season else "Stagione"
+    ctx = db_queries.load_season_context()
 
-    podium    = leaderboard[:3] if len(leaderboard) >= 3 else leaderboard
-    narrative = db_queries.get_season_narrative(leaderboard, races_done, races_total)
-    max_pts   = season_progress.get("max_pts_remaining", 0)
+    leaderboard     = db_queries.get_leaderboard(ctx)
+    recent_races    = db_queries.get_recent_races(3, ctx)
+    top_athletes    = db_queries.get_top_athletes(ctx)
+    next_race       = db_queries.get_next_race(ctx)
+    race_chart      = db_queries.get_race_chart_data(ctx)
+    season_progress = db_queries.get_season_progress(ctx)
+
+    races_done  = season_progress.get("races_done", 0)
+    races_total = season_progress.get("races_total", 0)
+    season_name = ctx.season.get("name", "Stagione") if ctx else "Stagione"
+
+    podium       = leaderboard[:3] if len(leaderboard) >= 3 else leaderboard
+    narrative    = db_queries.get_season_narrative(leaderboard, races_done, races_total)
+    max_pts      = season_progress.get("max_pts_remaining", 0)
     catchability = _catchability(leaderboard, max_pts)
 
     return templates.TemplateResponse(
@@ -77,9 +76,7 @@ async def dashboard(request: Request):
 @router.get("/users", response_class=HTMLResponse)
 async def users_list(request: Request):
     session = auth_module.get_session(request)
-
     users = db_queries.get_all_users_with_rosters()
-
     return templates.TemplateResponse(
         request,
         "dashboard/users.html",
@@ -90,12 +87,9 @@ async def users_list(request: Request):
 @router.get("/users/{username}", response_class=HTMLResponse)
 async def user_detail(request: Request, username: str):
     session = auth_module.get_session(request)
-
     detail = db_queries.get_user_detail(username)
-
     if detail is None:
         return HTMLResponse("Utente non trovato", status_code=404)
-
     return templates.TemplateResponse(
         request,
         "dashboard/user.html",
@@ -108,7 +102,10 @@ async def account_page(request: Request):
     session = auth_module.get_session(request)
     if not session or session.get("is_admin"):
         return RedirectResponse("/dashboard", status_code=302)
-    return templates.TemplateResponse(request, "dashboard/account.html", {"session": session, "error": None, "success": None})
+    return templates.TemplateResponse(
+        request, "dashboard/account.html",
+        {"session": session, "error": None, "success": None},
+    )
 
 
 @router.post("/account", response_class=HTMLResponse)
@@ -123,9 +120,9 @@ async def account_update(
     if not session or session.get("is_admin"):
         return RedirectResponse("/dashboard", status_code=302)
 
-    db = get_db()
+    db      = get_db()
     user_id = session["user_id"]
-    user = db.table("users").select("*").eq("id", user_id).single().execute().data
+    user    = db.table("users").select("*").eq("id", user_id).single().execute().data
 
     def render(error=None, success=None):
         return templates.TemplateResponse(
@@ -157,7 +154,7 @@ async def account_update(
         db.table("users").update(updates).eq("id", user_id).execute()
 
     new_username = updates.get("username", user["username"])
-    new_token = auth_module.create_session_token(user_id, is_admin=False, username=new_username)
+    new_token    = auth_module.create_session_token(user_id, is_admin=False, username=new_username)
     response = templates.TemplateResponse(
         request, "dashboard/account.html",
         {"session": {**session, "username": new_username}, "error": None, "success": "Profilo aggiornato."},
@@ -169,7 +166,7 @@ async def account_update(
 @router.get("/athletes/{slug}", response_class=HTMLResponse)
 async def athlete_detail(request: Request, slug: str):
     session = auth_module.get_session(request)
-    detail = db_queries.get_athlete_detail(slug)
+    detail  = db_queries.get_athlete_detail(slug)
     if detail is None:
         return HTMLResponse("Atleta non trovato", status_code=404)
     return templates.TemplateResponse(
@@ -182,7 +179,7 @@ async def athlete_detail(request: Request, slug: str):
 @router.get("/races", response_class=HTMLResponse)
 async def races_list(request: Request):
     session = auth_module.get_session(request)
-    races = db_queries.get_all_races()
+    races   = db_queries.get_all_races()
     return templates.TemplateResponse(
         request,
         "dashboard/races.html",
@@ -192,14 +189,13 @@ async def races_list(request: Request):
 
 @router.get("/races/{race_id}", response_class=HTMLResponse)
 async def race_detail(request: Request, race_id: str):
-    import uuid as _uuid
     try:
-        _uuid.UUID(race_id)
+        uuid.UUID(race_id)
     except ValueError:
         return HTMLResponse("Gara non trovata", status_code=404)
     session = auth_module.get_session(request)
     user_id = session["user_id"] if session else None
-    detail = db_queries.get_race_detail(race_id, user_id=user_id)
+    detail  = db_queries.get_race_detail(race_id, user_id=user_id)
     if detail is None:
         return HTMLResponse("Gara non trovata", status_code=404)
     return templates.TemplateResponse(

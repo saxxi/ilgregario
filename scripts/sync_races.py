@@ -178,7 +178,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source", choices=["pcs", "json", "csv"], default="pcs")
+    parser.add_argument("--source", choices=["pcs", "json"], default="pcs")
     parser.add_argument("--path", default=None,
                         help="Path to data file (JSON or CSV). Defaults to tmp/pcs_reference.json or tmp/pcs_calendar.csv")
     parser.add_argument("--cache", default="tmp/pcs_html",
@@ -191,10 +191,6 @@ if __name__ == "__main__":
         from importers.json_file import JSONFileImporter
         path = args.path or "tmp/pcs_reference.json"
         _importer = JSONFileImporter(path)
-    elif args.source == "csv":
-        from importers.csv_file import CSVFileImporter
-        path = args.path or "tmp/pcs_calendar.csv"
-        _importer = CSVFileImporter(path)
     else:
         _importer = PCSImporter(cache_dir=args.cache or None)
 
